@@ -68,7 +68,7 @@ let style = `
 }
 
 #presets {
-    background-color: lightgreen;
+    /* background-color: lightgreen; */
     padding: 20px;
     width: 600px;
 }
@@ -260,26 +260,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.canvasContext = this.canvas.getContext('2d');
 		this.canvasContextOverlay = this.canvasOverlay.getContext('2d');
 
-		this.loadPresetUrls();
+		// On récupère les urls des samples
+		let presetValue = this.loadPresetUrls();
+		
+		// On récupère charge les samples
+		this.loadSounds(presetValue);
 
-		// on charge les sons 
-		let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
-			// on a chargé les sons, on stocke sous forme de tableau
-			this.decodedSounds = bufferList;
-			// Pour chaque son on créé un SamplePlayer
-			this.decodedSounds.forEach((decodedSound, index) => {
-				this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-				this.setPad(index);
-				window.requestAnimationFrame(this.handleAnimationFrame);
-			});		
-		});
-
-		this.addCanvasListeners();
+		// Ajoute les listeners sur le select des presets
 		this.setPreset();
-		this.savePreset();
-		this.setKeyboardPress();
 
-		bl.load();
+		// Ajoute les listeners sur le canvas
+		this.addCanvasListeners();
+
+		// Ajoute les listeners sur le bouton de sauvegarde des presets
+		this.savePreset();
+
+		// Ajoute les listeners sur le clavier
+		this.setKeyboardPress();
 	}
 
 
@@ -343,7 +340,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		preset.onchange = () => {
 			
 			// On récupère les urls du preset
-			this.loadPresetUrls();
+			const presetValue = this.loadPresetUrls();
 
 			// On vide les samplePlayers
 			this.samplePlayers = [];
@@ -362,10 +359,18 @@ export default class SamplerHTMLElement extends HTMLElement {
 				b.onclick = null;
 			}
 
-			// On vide le nom du son
+			// On reset le nom du son
 			this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
 
-			// on charge les sons
+			// On charge les nouveaux sons
+			this.loadSounds(presetValue);
+		}
+	}
+
+	loadSounds = (presetValue) => {
+		// Si il n'y a pas de localStorage égale à presetValue, on charge les sons par défaut
+		if(!localStorage.getItem(presetValue)) {
+			// on charge les sons par défaut
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
 				this.decodedSounds = bufferList;
@@ -378,6 +383,32 @@ export default class SamplerHTMLElement extends HTMLElement {
 					window.requestAnimationFrame(this.handleAnimationFrame);
 				});
 			});
+
+			bl.load();
+		}
+		else {
+			// On récupère le preset à charger
+			const presetToLoad = JSON.parse(localStorage.getItem(presetValue));
+
+			// on charge les sons du preset
+			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
+				// on a chargé les sons, on stocke sous forme de tableau
+				this.decodedSounds = bufferList;
+				// Pour chaque son on créé un SamplePlayer
+				this.decodedSounds.forEach((decodedSound, index) => {
+					this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+
+					// On récupère les leftTrim et rightTrim du preset
+					this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
+					this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
+
+
+					this.setPad(index);
+
+					window.requestAnimationFrame(this.handleAnimationFrame);
+				});
+			});
+
 			bl.load();
 		}
 	}
@@ -417,7 +448,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 				SamplerHTMLElement.URLs = newURLs;
 			}
 		}
+
+		return preset;
 	}
+
 
 	savePreset = () => {
 		const save = this.shadowRoot.querySelector('#savePreset');
@@ -430,19 +464,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.samplePlayers.forEach((samplePlayer, index) => {
 				presetToSave[index] = {
 					url: SamplerHTMLElement.URLs[index],
-					leftTrimBar: samplePlayer.leftTrimBar.x,
-					rightTrimBar: samplePlayer.rightTrimBar.x
+
+					// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
+					leftTrim: Math.round(samplePlayer.leftTrimBar.x),
+					rightTrim: Math.round(samplePlayer.rightTrimBar.x)
 				}
 			});
 			localStorage.setItem(preset, JSON.stringify(presetToSave));
 
-			let presetToLoad = JSON.parse(localStorage.getItem(preset));
-			// console log les urls du preset
-			presetToLoad.forEach((sample, index) => {
-				console.log(sample.url);
-			});
+			// console log les samplePlayers
+			// console.log(localStorage);
+
+			// console.log(localStorage);
+			// let presetToLoad = JSON.parse(localStorage.getItem(preset));
+			// console.log(presetToLoad);
 		}
 	}
+
 
 	setButtonDefaultText = () => {
 		this.shadowRoot.querySelector('#pad0').innerHTML = "W";
