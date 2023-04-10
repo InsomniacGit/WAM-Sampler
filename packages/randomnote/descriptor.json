@@ -1,0 +1,11 @@
+{
+    "name": "Random Note Generator",
+    "vendor": "WebAudioModule",
+    "description": "Generate Random MIDI Notes",
+    "version": "1.0.0",
+    "apiVersion": "2.0.0",
+    "thumbnail": "screenshot.png",
+    "keywords": [],
+    "isInstrument": false,
+    "website": ""
+}
