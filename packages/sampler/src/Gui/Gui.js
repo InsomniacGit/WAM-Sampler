@@ -317,6 +317,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.player.releaseTrimBars();
 			}
 		}
+
+		this.canvasOverlay.onmouseout = (evt) => {
+			if (this.player) {
+				this.player.releaseTrimBarsOnMouseOut();
+			}
+		}
 	}
 
 	setPad(index) {
@@ -359,6 +365,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On vide les samplePlayers
 			this.samplePlayers = [];
 
+			// On vide le player
+			this.player = null;
+
 			// On vide le canvas
 			this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
@@ -376,9 +385,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On reset le nom du son
 			this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
 
-			// On vide le canvas
-			this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
-			this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
 
 			// On charge les nouveaux sons
 			this.loadSounds(presetValue);
@@ -506,6 +512,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// On vide les samplePlayers
 		this.samplePlayers = [];
 
+		// On vide le player
+		this.player = null;
+
 		// On vide le canvas
 		this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
@@ -522,10 +531,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On reset le nom du son
 		this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
-
-		// On vide le canvas
-		this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
 
 		// On charge les nouveaux sons
 		this.loadSounds(presetValue);

@@ -227,19 +227,6 @@ export default class SamplePlayer {
 
     // on mouse move
     updateTrimBars(mousePos) {
-        if (mousePos.x <= 0) {
-            this.leftTrimBar.x = 0;
-            //leftTrimBar.dragged = false;
-            //leftTrimBar.selected = false;
-            //leftTrimBar.color = "white";
-        }
-        if (mousePos.x >= this.canvasOverlay.width) {
-            this.rightTrimBar.x = this.canvasOverlay.width;
-            //leftTrimBar.dragged = false;
-            //leftTrimBar.selected = false;
-            //leftTrimBar.color = "white";
-        }
-
         if (this.leftTrimBar.dragged) {
             if (this.leftTrimBar.x < this.rightTrimBar.x)
                 this.leftTrimBar.x = mousePos.x;
@@ -247,8 +234,21 @@ export default class SamplePlayer {
                 if (mousePos.x < this.rightTrimBar.x)
                     this.leftTrimBar.x = mousePos.x;
             }
-
+            // Si la barre de gauche est déplacée à droite de la barre de droite
+            // alors on realease les trimbars
+            if (this.leftTrimBar.x > this.rightTrimBar.x){
+                this.releaseTrimBarsOnMouseOut();
+                this.leftTrimBar.x = this.rightTrimBar.x;
+            }
+            if (mousePos.x <= 0) {
+                this.leftTrimBar.x = 0;
+                this.releaseTrimBarsOnMouseOut();
+                //leftTrimBar.dragged = false;
+                //leftTrimBar.selected = false;
+                //leftTrimBar.color = "white";
+            }
         }
+
         if (this.rightTrimBar.dragged) {
             if (this.rightTrimBar.x > this.leftTrimBar.x)
                 this.rightTrimBar.x = mousePos.x;
@@ -256,7 +256,22 @@ export default class SamplePlayer {
                 if (mousePos.x > this.rightTrimBar.x)
                     this.rightTrimBar.x = mousePos.x;
             }
+            // Si la barre de droite est déplacée à gauche de la barre de gauche
+            // alors on realease les trimbars
+            if (this.rightTrimBar.x < this.leftTrimBar.x){
+                this.releaseTrimBarsOnMouseOut();
+                this.rightTrimBar.x = this.leftTrimBar.x;
+            }
+            if (mousePos.x >= this.canvasOverlay.width) {
+                this.rightTrimBar.x = this.canvasOverlay.width;
+                this.releaseTrimBarsOnMouseOut();
+                //leftTrimBar.dragged = false;
+                //leftTrimBar.selected = false;
+                //leftTrimBar.color = "white";
+            }
         }
+
+
     }
 
     // on mouse click
@@ -284,5 +299,13 @@ export default class SamplePlayer {
             if (this.rightTrimBar.x < this.leftTrimBar.x)
                 this.rightTrimBar.x = this.leftTrimBar.x;
         }
+    }
+
+    // on mouse out
+    releaseTrimBarsOnMouseOut() {
+        this.leftTrimBar.dragged = false;
+        this.leftTrimBar.selected = false;
+        this.rightTrimBar.dragged = false;
+        this.rightTrimBar.selected = false;
     }
 }
