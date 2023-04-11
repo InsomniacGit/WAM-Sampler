@@ -207,7 +207,9 @@ let template = `
 				<option value="factoryPreset1">Factory preset 1</option>
 				<option value="factoryPreset2">Factory preset 2</option>
 			</select>
+			<button id="createPreset">Create preset</button>
 			<button id="savePreset">Save preset</button>
+			<button id="deletePreset">Delete preset</button>
 		</div>
 	</div>
 </div>
@@ -266,14 +268,26 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// On récupère charge les samples
 		this.loadSounds(presetValue);
 
+		// On affiche les boutons de presets
+		this.displayPresetButtons();
+
+		// On créé les options du select des presets
+		this.createPresetOptions();
+
 		// Ajoute les listeners sur le select des presets
 		this.setPreset();
 
 		// Ajoute les listeners sur le canvas
 		this.addCanvasListeners();
 
+		// Ajoute les listeners sur le bouton de création des presets
+		this.createPreset();
+
 		// Ajoute les listeners sur le bouton de sauvegarde des presets
 		this.savePreset();
+
+		// Ajoute les listeners sur le bouton de suppression des presets
+		this.deletePreset();
 
 		// Ajoute les listeners sur le clavier
 		this.setKeyboardPress();
@@ -362,6 +376,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On reset le nom du son
 			this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
 
+			// On vide le canvas
+			this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
+
 			// On charge les nouveaux sons
 			this.loadSounds(presetValue);
 		}
@@ -379,6 +397,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 					this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
 					this.setPad(index);
+					this.displayPresetButtons();
 
 					window.requestAnimationFrame(this.handleAnimationFrame);
 				});
@@ -402,8 +421,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 					this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
 					this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
 
-
 					this.setPad(index);
+					this.displayPresetButtons();
 
 					window.requestAnimationFrame(this.handleAnimationFrame);
 				});
@@ -431,6 +450,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 					newURLs[index] = sample.url;
 				});
 				SamplerHTMLElement.URLs = newURLs;
+				console.log("factoryPreset1 from localStorage");
 			}
 		} else if(preset === "factoryPreset2") {
 			if(localStorage.getItem(preset) === null) {
@@ -446,10 +466,143 @@ export default class SamplerHTMLElement extends HTMLElement {
 					newURLs[index] = sample.url;
 				});
 				SamplerHTMLElement.URLs = newURLs;
+				console.log("factoryPreset2 from localStorage");
+			}
+		}
+		else {
+			// console.log(preset + " = " + localStorage.getItem(preset));
+
+			if(localStorage.getItem(preset) != null) {
+				// Pour chaque index du preset, on récupère les urls et on les stocke dans un nouveau tableau
+				let presetToLoad = JSON.parse(localStorage.getItem(preset));
+				let newURLs = [];
+				presetToLoad.forEach((sample, index) => {
+					newURLs[index] = sample.url;
+				});
+				SamplerHTMLElement.URLs = newURLs;
+				console.log("customPreset from localStorage");
+			}
+			else {
+				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
+				console.log("Error loadPresetUrls");
 			}
 		}
 
 		return preset;
+	}
+
+	// Fonction qui permet de changer de preset
+	changePreset = (presetName) => {
+		// On récupère le preset
+		const preset = this.shadowRoot.querySelector('#selectPreset');
+
+		// On change la valeur du select
+		preset.value = presetName;
+		// console.log("Change preset = " + presetName);
+
+		// On récupère les urls du preset
+		const presetValue = this.loadPresetUrls();
+
+		// On vide les samplePlayers
+		this.samplePlayers = [];
+
+		// On vide le canvas
+		this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
+
+		// On vide les boutons
+		for(let i = 0; i < 16; i++) {
+			const b = this.shadowRoot.querySelector('#pad' + i);
+			// On remet le texte par défaut (touche clavier)
+			this.setButtonDefaultText();
+			b.classList.remove('set');
+			// On supprime les listeners
+			b.onclick = null;
+		}
+
+		// On reset le nom du son
+		this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
+
+		// On vide le canvas
+		this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
+
+		// On charge les nouveaux sons
+		this.loadSounds(presetValue);
+	}
+
+
+	createPresetOptions = () => {
+		// On récupère les presets sauvegardés
+		let presets = Object.keys(localStorage);
+
+		// On récupère le select
+		const selectPreset = this.shadowRoot.querySelector('#selectPreset');
+
+		// On vide le select
+		selectPreset.innerHTML = "";
+
+		// On ajoute les options par défaut
+		let factoryPreset1 = document.createElement("option");
+		factoryPreset1.value = "factoryPreset1";
+		factoryPreset1.innerHTML = "Factory Preset 1";
+		selectPreset.appendChild(factoryPreset1);
+
+		let factoryPreset2 = document.createElement("option");
+		factoryPreset2.value = "factoryPreset2";
+		factoryPreset2.innerHTML = "Factory Preset 2";
+		selectPreset.appendChild(factoryPreset2);
+
+		// On ajoute les options des presets sauvegardés
+		presets.forEach((preset) => {
+			// Si le preset n'est pas un preset par défaut
+			if(preset !== "factoryPreset1" && preset !== "factoryPreset2") {
+				let option = document.createElement("option");
+				option.value = preset;
+				option.innerHTML = preset;
+				selectPreset.appendChild(option);
+			}
+		});
+	}
+
+
+	createPreset = () => {
+		// Duplique le preset actuel
+		const createPreset = this.shadowRoot.querySelector('#createPreset');
+
+		createPreset.onclick = () => {
+			// Saisie du nom du preset
+			let presetName = prompt("Nom du preset :");
+
+			// Si le nom du preset est vide
+			if(presetName === null || presetName === "") {
+				alert("Le nom du preset ne peut pas être vide");
+			}
+			// Si le nom du preset existe déjà
+			else if(localStorage.getItem(presetName) !== null) {
+				alert("Le nom du preset existe déjà");
+			}
+			else {
+				// Création du nouveau preset
+				let presetToSave = [];
+				this.samplePlayers.forEach((samplePlayer, index) => {
+					presetToSave[index] = {
+						url: SamplerHTMLElement.URLs[index],
+
+						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
+						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
+						rightTrim: Math.round(samplePlayer.rightTrimBar.x)
+					}
+				});
+				localStorage.setItem(presetName, JSON.stringify(presetToSave));
+
+				this.createPresetOptions();
+				this.changePreset(presetName);
+				this.displayPresetButtons();
+
+				console.log(localStorage);
+			}
+		}
 	}
 
 
@@ -472,12 +625,59 @@ export default class SamplerHTMLElement extends HTMLElement {
 			});
 			localStorage.setItem(preset, JSON.stringify(presetToSave));
 
-			// console log les samplePlayers
-			// console.log(localStorage);
+			this.createPresetOptions();
+			this.changePreset(preset);
+			this.displayPresetButtons();
 
-			// console.log(localStorage);
+			console.log(localStorage);
 			// let presetToLoad = JSON.parse(localStorage.getItem(preset));
 			// console.log(presetToLoad);
+		}
+	}
+
+	deletePreset = () => {
+		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
+
+		deletePreset.onclick = () => {
+			const preset = this.shadowRoot.querySelector('#selectPreset').value;
+
+			// Supprime le preset du localStorage
+			localStorage.removeItem(preset);
+
+			this.createPresetOptions();
+			// Si le preset supprimé est factoryPreset2, on charge factoryPreset2
+			if(preset === "factoryPreset2") {
+				this.changePreset("factoryPreset2");
+			}
+			// Sinon on charge factoryPreset1
+			else {
+				this.changePreset("factoryPreset1");
+			}
+
+			this.displayPresetButtons();
+
+			console.log(localStorage);
+		}
+	}
+
+	displayPresetButtons = () => {
+		const preset = this.shadowRoot.querySelector('#selectPreset').value;
+
+		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
+
+		// Si le localStorage ne contient pas le preset, on cache le bouton "deletePreset"
+		if(localStorage.getItem(preset) === null) {
+			deletePreset.style.display = "none";
+		}
+		else {
+			deletePreset.style.display = "inline-block";
+		}
+
+		if(preset === "factoryPreset1" || preset === "factoryPreset2") {
+			deletePreset.innerHTML = "Reset preset";
+		}
+		else {
+			deletePreset.innerHTML = "Delete preset";
 		}
 	}
 
