@@ -224,7 +224,7 @@ let template = `
 export default class SamplerHTMLElement extends HTMLElement {
 	// plugin = the same that is passed in the DSP part. It's the instance
 	// of the class that extends WebAudioModule. It's an Observable plugin
-	
+
 	static preset1URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav', '../audio/preset1/hihat.wav'];
 	static preset2URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
 
@@ -264,7 +264,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On récupère les urls des samples
 		let presetValue = this.loadPresetUrls();
-		
+
 		// On récupère charge les samples
 		this.loadSounds(presetValue);
 
@@ -346,9 +346,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.b = e.target;
 
 			this.b.classList.add('active');
-			setTimeout(() => {
-				this.b.classList.remove('active');
-			}, 100);
+			// setTimeout(() => {
+			// 	this.b.classList.remove('active');
+			// }, 100);
 
 		};
 	}
@@ -358,7 +358,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// Lorsque le preset est changé, on charge les nouveaux sons
 		preset.onchange = () => {
-			
+
 			// On récupère les urls du preset
 			const presetValue = this.loadPresetUrls();
 
@@ -373,7 +373,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
 
 			// On vide les boutons
-			for(let i = 0; i < 16; i++) {
+			for (let i = 0; i < 16; i++) {
 				const b = this.shadowRoot.querySelector('#pad' + i);
 				// On remet le texte par défaut (touche clavier)
 				this.setButtonDefaultText();
@@ -393,7 +393,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	loadSounds = (presetValue) => {
 		// Si il n'y a pas de localStorage égale à presetValue, on charge les sons par défaut
-		if(!localStorage.getItem(presetValue)) {
+		if (!localStorage.getItem(presetValue)) {
 			// on charge les sons par défaut
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
@@ -442,8 +442,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 	loadPresetUrls = () => {
 		const preset = this.shadowRoot.querySelector('#selectPreset').value;
 
-		if(preset === "factoryPreset1") {
-			if(localStorage.getItem(preset) === null) {
+		if (preset === "factoryPreset1") {
+			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = SamplerHTMLElement.preset1URLs;
 				console.log("factoryPreset1");
@@ -458,8 +458,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 				SamplerHTMLElement.URLs = newURLs;
 				console.log("factoryPreset1 from localStorage");
 			}
-		} else if(preset === "factoryPreset2") {
-			if(localStorage.getItem(preset) === null) {
+		} else if (preset === "factoryPreset2") {
+			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = SamplerHTMLElement.preset2URLs;
 				console.log("factoryPreset2");
@@ -478,7 +478,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		else {
 			// console.log(preset + " = " + localStorage.getItem(preset));
 
-			if(localStorage.getItem(preset) != null) {
+			if (localStorage.getItem(preset) != null) {
 				// Pour chaque index du preset, on récupère les urls et on les stocke dans un nouveau tableau
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
@@ -520,7 +520,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.canvasContextOverlay.clearRect(0, 0, this.canvasOverlay.width, this.canvasOverlay.height);
 
 		// On vide les boutons
-		for(let i = 0; i < 16; i++) {
+		for (let i = 0; i < 16; i++) {
 			const b = this.shadowRoot.querySelector('#pad' + i);
 			// On remet le texte par défaut (touche clavier)
 			this.setButtonDefaultText();
@@ -561,7 +561,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// On ajoute les options des presets sauvegardés
 		presets.forEach((preset) => {
 			// Si le preset n'est pas un preset par défaut
-			if(preset !== "factoryPreset1" && preset !== "factoryPreset2") {
+			if (preset !== "factoryPreset1" && preset !== "factoryPreset2") {
 				let option = document.createElement("option");
 				option.value = preset;
 				option.innerHTML = preset;
@@ -580,11 +580,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 			let presetName = prompt("Nom du preset :");
 
 			// Si le nom du preset est vide
-			if(presetName === null || presetName === "") {
+			if (presetName === null || presetName === "") {
 				alert("Le nom du preset ne peut pas être vide");
 			}
 			// Si le nom du preset existe déjà
-			else if(localStorage.getItem(presetName) !== null) {
+			else if (localStorage.getItem(presetName) !== null) {
 				alert("Le nom du preset existe déjà");
 			}
 			else {
@@ -651,7 +651,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.createPresetOptions();
 			// Si le preset supprimé est factoryPreset2, on charge factoryPreset2
-			if(preset === "factoryPreset2") {
+			if (preset === "factoryPreset2") {
 				this.changePreset("factoryPreset2");
 			}
 			// Sinon on charge factoryPreset1
@@ -671,14 +671,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
 
 		// Si le localStorage ne contient pas le preset, on cache le bouton "deletePreset"
-		if(localStorage.getItem(preset) === null) {
+		if (localStorage.getItem(preset) === null) {
 			deletePreset.style.display = "none";
 		}
 		else {
 			deletePreset.style.display = "inline-block";
 		}
 
-		if(preset === "factoryPreset1" || preset === "factoryPreset2") {
+		if (preset === "factoryPreset1" || preset === "factoryPreset2") {
 			deletePreset.innerHTML = "Reset preset";
 		}
 		else {
@@ -773,6 +773,77 @@ export default class SamplerHTMLElement extends HTMLElement {
 				case 'V':
 				case 'v':
 					this.shadowRoot.querySelector('#pad3').click();
+					break;
+			}
+		};
+
+		document.onkeyup = (e) => {
+			// console.log("KeyUp = " + e.key);
+			switch (e.key) {
+				case '1':
+				case '&':
+					this.shadowRoot.querySelector('#pad12').classList.remove('active');
+
+					break;
+				case '2':
+				case 'é':
+					this.shadowRoot.querySelector('#pad13').classList.remove('active');
+					break;
+				case '3':
+				case '"':
+					this.shadowRoot.querySelector('#pad14').classList.remove('active');
+					break;
+				case '4':
+				case "'":
+					this.shadowRoot.querySelector('#pad15').classList.remove('active');
+					break;
+				case 'A':
+				case 'a':
+					this.shadowRoot.querySelector('#pad8').classList.remove('active');
+					break;
+				case 'Z':
+				case 'z':
+					this.shadowRoot.querySelector('#pad9').classList.remove('active');
+					break;
+				case 'E':
+				case 'e':
+					this.shadowRoot.querySelector('#pad10').classList.remove('active');
+					break;
+				case 'R':
+				case 'r':
+					this.shadowRoot.querySelector('#pad11').classList.remove('active');
+					break;
+				case 'Q':
+				case 'q':
+					this.shadowRoot.querySelector('#pad4').classList.remove('active');
+					break;
+				case 'S':
+				case 's':
+					this.shadowRoot.querySelector('#pad5').classList.remove('active');
+					break;
+				case 'D':
+				case 'd':
+					this.shadowRoot.querySelector('#pad6').classList.remove('active');
+					break;
+				case 'F':
+				case 'f':
+					this.shadowRoot.querySelector('#pad7').classList.remove('active');
+					break;
+				case 'W':
+				case 'w':
+					this.shadowRoot.querySelector('#pad0').classList.remove('active');
+					break;
+				case 'X':
+				case 'x':
+					this.shadowRoot.querySelector('#pad1').classList.remove('active');
+					break;
+				case 'C':
+				case 'c':
+					this.shadowRoot.querySelector('#pad2').classList.remove('active');
+					break;
+				case 'V':
+				case 'v':
+					this.shadowRoot.querySelector('#pad3').classList.remove('active');
 					break;
 			}
 		};
