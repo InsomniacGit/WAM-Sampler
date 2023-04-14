@@ -123,8 +123,8 @@ export default class SamplePlayer {
         // draw the times
         let text = currentText + " / " + seconds + ":" + miliseconds;
         ctx.fillStyle = "white";
-        ctx.font = "20px Arial";
-        ctx.fillText(text, 500, 90);
+        ctx.font = "10px Arial";
+        ctx.fillText(text, 225, 45);
 
         ctx.restore();
     }
@@ -180,16 +180,16 @@ export default class SamplePlayer {
         ctx.fillStyle = this.leftTrimBar.color;
         ctx.beginPath();
         ctx.moveTo(this.leftTrimBar.x, -0);
-        ctx.lineTo(this.leftTrimBar.x + 10, 8);
-        ctx.lineTo(this.leftTrimBar.x, 16);
+        ctx.lineTo(this.leftTrimBar.x + 5, 4);
+        ctx.lineTo(this.leftTrimBar.x, 8);
         ctx.fill();
 
         // tiangle end
         ctx.beginPath();
         ctx.fillStyle = this.rightTrimBar.color;
         ctx.moveTo(this.rightTrimBar.x, -0);
-        ctx.lineTo(this.rightTrimBar.x - 10, 8);
-        ctx.lineTo(this.rightTrimBar.x, 16);
+        ctx.lineTo(this.rightTrimBar.x - 5, 4);
+        ctx.lineTo(this.rightTrimBar.x, 8);
         ctx.fill();
 
         // We draw grey transparent rectangles before leftTrimBar and after rightTrimBar
@@ -203,7 +203,7 @@ export default class SamplePlayer {
     highLightTrimBarsWhenClose(mousePos) {
         // compute distance between mousePos and trim pos
         let d = this.distance(mousePos.x, mousePos.y, this.leftTrimBar.x + 5, 4);
-        if ((d < 10) && (!this.rightTrimBar.selected)) {
+        if ((d < 5) && (!this.rightTrimBar.selected)) {
             this.leftTrimBar.color = "red";
             this.leftTrimBar.selected = true;
         } else {
@@ -212,7 +212,7 @@ export default class SamplePlayer {
         }
 
         d = this.distance(mousePos.x, mousePos.y, this.rightTrimBar.x - 5, 4);
-        if ((d < 10) && (!this.leftTrimBar.selected)) {
+        if ((d < 5) && (!this.leftTrimBar.selected)) {
             this.rightTrimBar.color = "red";
             this.rightTrimBar.selected = true;
         } else {

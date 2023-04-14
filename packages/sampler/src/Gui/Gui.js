@@ -8,21 +8,17 @@ import SamplePlayer from './SamplePlayer.js';
 // that build in pure JS the syles and html template directly
 // in the code...
 let style = `
-#research {
-    margin-bottom: 20px;
-}
-
 .wrapper {
     position: relative;
-    width: 600px;
-    height: 100px;
-	padding: 20px;
+    width: 280px;
+    height: 50px;
+	padding: 10px;
 }
 
 .wrapper canvas {
     position: absolute;
-    top: 20;
-    left: 20;
+    top: 10;
+    left: 10;
 }
 
 /* Modifie la taille du waveform */
@@ -34,50 +30,98 @@ let style = `
 }
 
 #myCanvasOverlay {
-    border:1px solid red;
+    border:1px solid black;
     position: absolute;
-    z-index:10;
+    z-index:5;
   }
 
 #parameters {
     /* background-color: red; */
-    width: 640px;
-    height: 670px;
+    width: 300px;
+    height: 350px;
 }
 
 #sampler {
-    display: flex;
+	position: relative;
+	overflow: hidden;
+
+	display: flex;
     justify-content: left;
     border: 2px solid;
 
-    width: 1210px;
-    height: 670px;
+    width: 600px;
+    height: 350px;
     /* background-color: blue; */
+
+	box-shadow: 10px 10px 5px #888888;	
+	border-radius: 10px;
+}
+
+#sampler:before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 1200px;
+	height: 700px;
+	background-image: url("./Gui/img.jpg");
+	background-size: 50% 50%;
+	background-repeat: repeat;
+	
+	z-index: -1;
+	animation: move 30s infinite linear;
+  }
+  
+  @keyframes move {
+	0% {
+	  transform: translate(0%, 0%);
+	}
+	100% {
+	  transform: translate(-50%, -50%);
+	}
+  }
+  
+
+#waveform {
+	/* background-color: green; */
 }
 
 /* Label soundname */
 #soundName {
-    width: 600px;
-    height: 25px;
-    padding: 20px;
+    width: 280px;
+    height: 12.5px;
+	padding: 10px 10px 0px 10px;
     margin: 0px;
-    font-size: 25px;
+    font-size: 12.5px;
     font-weight: bold;
     text-align: center;
+	color: white;
+	text-shadow: 0px 0px 1px black;
+	font-weight: bold;
     /* background-color: yellow; */
 }
 
 #presets {
     /* background-color: lightgreen; */
-    padding: 20px;
-    width: 600px;
+    padding: 10px;
+    width: 280px;
 }
 
-#research {
-    display: flex;
-    justify-content: center;
+#selectPreset {
+	width: 280px;
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
 }
 
+#createPreset, #deletePreset, #savePreset {
+	width: 90px;
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+}
 
 
 
@@ -88,22 +132,24 @@ let style = `
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
-    gap: 10px;
-    width: 530px;
-    height: 630px;
-    padding: 20px;
+    gap: 5px;
+    width: 280px;
+    height: 330px;
+    padding: 10px;
     /* background-color: yellow; */
 }
 
 .padbutton {
-    width: 125px;
-    height: 125px;
+    width: 66.25px;
+    height: 66.25px;
     border: none;
     background-color: #ccc;
     color: black;
     cursor: pointer;
     font-family: courier;
-    font-size: 15px;
+    font-size: 10px;
+	border-radius: 10px;
+	box-shadow: none;
 }
 
 .padactionbutton {
@@ -113,7 +159,8 @@ let style = `
 
 .padprogress {
     width: 100%;
-    height: 10px;
+	margin-top: 1px;
+    height: 7px;
 }
 
 .set {
@@ -124,6 +171,12 @@ let style = `
     background-color: red;
 }
 
+.selected {
+	box-shadow: 2px 2px 2px red, -2px -2px 2px red, 2px -2px 2px red, -2px 2px 2px red;
+}
+
+
+
 #volumeGain {
 	left: 2px;
 	top: 12px;
@@ -133,28 +186,30 @@ let style = `
 	color: black;
 	font-family: "Verdana";
 	font-size: 8px;
-
 }
 
 .knob-wrapper {
     display: flex;
     justify-content: center;
 	align-items: center;
-  }
+}
 
 .knob {
     display: inline-flex;
 	flex-direction: column;
     align-items: center;
     margin: 0 10px;
-  }
+}
 
 .knob label {
-    margin-top: 5px;
-    text-align: center;
-  }
+	margin-top: 5px;
+	text-align: center;
+	color: white;
+	text-shadow: 0px 0px 1px black;
+}
 
 `;
+
 let template = `
 <div id="sampler">
 	
@@ -229,8 +284,8 @@ let template = `
 		<div id="waveform">
 			<p id="soundName">Waveform</p>
 			<div class="wrapper">
-				<canvas id="myCanvas" width=600 height=100></canvas>
-				<canvas id="myCanvasOverlay" width=600 height=100></canvas>
+				<canvas id="myCanvas" width=280 height=50></canvas>
+				<canvas id="myCanvasOverlay" width=280 height=50></canvas>
 			</div>
 		</div>
 		<div id="presets">
@@ -399,7 +454,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
-		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop();
+		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.').splice(0, 1);
 
 		b.classList.add('set');
 
@@ -426,6 +481,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 			setTimeout(() => {
 				this.b.classList.remove('active');
 			}, 100);
+
+			// On enleve la class .selected de tous les boutons
+			const buttons = this.shadowRoot.querySelectorAll('.padButton');
+			buttons.forEach((button) => {
+				button.classList.remove('selected');
+			});
+
+			// On ajoute la class .selected au bouton cliqué
+			b.classList.add('selected');
 
 		};
 	}
@@ -860,7 +924,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 				case '1':
 				case '&':
 					this.shadowRoot.querySelector('#pad12').classList.remove('active');
-
 					break;
 				case '2':
 				case 'é':
@@ -925,7 +988,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			}
 		};
 	}
-
 
 
 	// name of the custom HTML element associated

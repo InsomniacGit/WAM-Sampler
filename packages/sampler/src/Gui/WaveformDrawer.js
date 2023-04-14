@@ -4,7 +4,7 @@ export default function WaveformDrawer() {
     this.canvas;
     this.displayWidth;
     this.displayHeight;
-    this.sampleStep =  10;
+    this.sampleStep =  50;
     this.color = 'black';
     //test
 
