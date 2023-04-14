@@ -7,6 +7,11 @@ export default class SamplePlayer {
         this.decodedSound = decodedSound;
         this.color = color;
         this.pluginAudioNode = pluginAudioNode;
+        // effects
+        this.effects = {};
+        this.effects.volumeGain = 0.60;
+        this.effects.pan = 0;
+        this.effects.tone = 0;
 
         // we add an overlay canvas on top of the waveform canvas
         this.canvasOverlay = canvasOverlay;
@@ -56,7 +61,7 @@ export default class SamplePlayer {
         this.leftTrimBar.startTime = this.pixelToSeconds(this.leftTrimBar.x, bufferDuration);
         let trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
         // this.bufferSource.start(0, this.leftTrimBar.startTime, trimmedDuration);
-        this.pluginAudioNode.play(this.bufferSource, this.leftTrimBar.startTime, trimmedDuration);
+        this.pluginAudioNode.play(this.bufferSource, this.effects, this.leftTrimBar.startTime, trimmedDuration);
 
         this.startTime = this.ctx.currentTime;
 

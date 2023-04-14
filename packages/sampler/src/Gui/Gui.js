@@ -123,6 +123,37 @@ let style = `
 .active {
     background-color: red;
 }
+
+#volumeGain {
+	left: 2px;
+	top: 12px;
+}
+
+#volumeGain div {
+	color: black;
+	font-family: "Verdana";
+	font-size: 8px;
+
+}
+
+.knob-wrapper {
+    display: flex;
+    justify-content: center;
+	align-items: center;
+  }
+
+.knob {
+    display: inline-flex;
+	flex-direction: column;
+    align-items: center;
+    margin: 0 10px;
+  }
+
+.knob label {
+    margin-top: 5px;
+    text-align: center;
+  }
+
 `;
 let template = `
 <div id="sampler">
@@ -211,6 +242,20 @@ let template = `
 			<button id="savePreset">Save preset</button>
 			<button id="deletePreset">Delete preset</button>
 		</div>
+		<br>
+			<div class="knob" id="volumeGain">
+				<webaudio-knob  id="knob1" height="40" width="40" sprites="100" min="0" max="1" step="0.01" value="0.6" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+				<label for="knob1">Volume</label>
+			</div>
+			<div class="knob" id="pan">
+				<webaudio-knob  id="knob2" height="40" width="40" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
+				<label for="knob2">Pan</label>
+			</div>
+			<div class="knob" id="tone">
+				<webaudio-knob  id="knob3" height="40" width="40" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
+				<label for="knob3">Tone</label>
+			</div>
+		</div>
 	</div>
 </div>
 `;
@@ -238,6 +283,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// MANDATORY for the GUI to observe the plugin state
 		this.plugin = plugin;
+
+		this.setKnobs();
 
 		this.samplePlayers = [];
 
@@ -325,6 +372,31 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 	}
 
+	setKnobs() {
+		this.shadowRoot
+			.querySelector('#knob1')
+			.addEventListener('input', (e) => {
+				//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
+
+				this.player.effects.volumeGain = parseFloat(e.target.value);
+			});
+		
+		this.shadowRoot
+			.querySelector('#knob2')
+			.addEventListener('input', (e) => {
+				//this.plugin.audioNode.setParamsValues({ pan: e.target.value });
+				this.player.effects.pan = parseFloat(e.target.value);
+
+			});
+		
+		this.shadowRoot
+			.querySelector('#knob3')
+			.addEventListener('input', (e) => {
+				//this.plugin.audioNode.setParamsValues({ tone: e.target.value });
+				this.player.effects.tone = parseFloat(e.target.value);
+			});
+	}
+
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
 		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop();
@@ -336,6 +408,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// console.log("On dessine et on joue son " + index)
 			// display name of the sound inside the event.target element
 			this.player = this.samplePlayers[index];
+			// set effects knobs to current values
+			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
+			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
+			this.shadowRoot.querySelector('#knob3').value = this.player.effects.tone;
+
 			this.player.drawWaveform();
 
 			this.shadowRoot.querySelector('#soundName').innerHTML = SamplerHTMLElement.URLs[index].split('/').pop();
@@ -346,9 +423,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.b = e.target;
 
 			this.b.classList.add('active');
-			// setTimeout(() => {
-			// 	this.b.classList.remove('active');
-			// }, 100);
+			setTimeout(() => {
+				this.b.classList.remove('active');
+			}, 100);
 
 		};
 	}

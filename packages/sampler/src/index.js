@@ -55,6 +55,24 @@ export default class SamplerPlugin extends WebAudioModule {
 			// samplerNode.overdrives[0] is a waveshaper. When we call setLowGain(value) it will change
 			// the curve of the waveshaper... so... we don't really want to automatize at a fast rate...
 			// I guess this is the case of a developer who is gonna do custom automation
+			volumeGain: {
+				defaultValue: 0.6,
+				minValue: 0,
+				maxValue: 1,
+				onChange: (value) => { samplerNode.volumeGain = value; },
+			},
+			pan: {
+				defaultValue: 0,
+				minValue: -1,
+				maxValue: 1,
+				onChange: (value) => { samplerNode.pan = value; },
+			},
+			tone: {
+				defaultValue: 0,
+				minValue: -1,
+				maxValue: 1,
+				onChange: (value) => { samplerNode.tone = value; },
+			},
 		};
 		// hmmm no mapping...
 		// const paramsMapping = {};
