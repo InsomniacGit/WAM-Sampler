@@ -299,7 +299,7 @@ let template = `
 		</div>
 		<br>
 			<div class="knob" id="volumeGain">
-				<webaudio-knob  id="knob1" height="40" width="40" sprites="100" min="0" max="1" step="0.01" value="0.6" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+				<webaudio-knob  id="knob1" height="40" width="40" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
 				<label for="knob1">Volume</label>
 			</div>
 			<div class="knob" id="pan">
@@ -433,6 +433,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			.addEventListener('input', (e) => {
 				//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
 
+				if(this.player == undefined) return;
+
 				this.player.effects.volumeGain = parseFloat(e.target.value);
 			});
 		
@@ -440,6 +442,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 			.querySelector('#knob2')
 			.addEventListener('input', (e) => {
 				//this.plugin.audioNode.setParamsValues({ pan: e.target.value });
+
+				if(this.player == undefined) return;
+
 				this.player.effects.pan = parseFloat(e.target.value);
 
 			});
@@ -448,13 +453,16 @@ export default class SamplerHTMLElement extends HTMLElement {
 			.querySelector('#knob3')
 			.addEventListener('input', (e) => {
 				//this.plugin.audioNode.setParamsValues({ tone: e.target.value });
+
+				if(this.player == undefined) return;
+				
 				this.player.effects.tone = parseFloat(e.target.value);
 			});
 	}
 
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
-		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.').splice(0, 1);
+		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
 
 		b.classList.add('set');
 
@@ -468,9 +476,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.tone;
 
+			//console.log(this.player.effects);
+
 			this.player.drawWaveform();
 
-			this.shadowRoot.querySelector('#soundName').innerHTML = SamplerHTMLElement.URLs[index].split('/').pop();
+			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML;
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
 			this.player.play();
@@ -567,6 +577,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 					// On récupère les leftTrim et rightTrim du preset
 					this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
 					this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
+
+					// On récupère les effets du preset
+					this.samplePlayers[index].effects.volumeGain = presetToLoad[index].effects.volumeGain;
+					this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
+					this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
 					this.setPad(index);
 					this.displayPresetButtons();
@@ -721,7 +736,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			let presetName = prompt("Nom du preset :");
 
 			// Si le nom du preset est vide
-			if (presetName === null || presetName === "") {
+			if (presetName === "") {
 				alert("Le nom du preset ne peut pas être vide");
 			}
 			// Si le nom du preset existe déjà
@@ -737,7 +752,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
-						rightTrim: Math.round(samplePlayer.rightTrimBar.x)
+						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
+
+						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone)
+						effects: {
+							volumeGain: samplePlayer.effects.volumeGain,
+							pan: samplePlayer.effects.pan,
+							tone: samplePlayer.effects.tone
+						}
 					}
 				});
 				localStorage.setItem(presetName, JSON.stringify(presetToSave));
@@ -766,7 +788,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 					// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 					leftTrim: Math.round(samplePlayer.leftTrimBar.x),
-					rightTrim: Math.round(samplePlayer.rightTrimBar.x)
+					rightTrim: Math.round(samplePlayer.rightTrimBar.x),
+
+					// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone)
+					effects: {
+						volumeGain: samplePlayer.effects.volumeGain,
+						pan: samplePlayer.effects.pan,
+						tone: samplePlayer.effects.tone
+					}
 				}
 			});
 			localStorage.setItem(preset, JSON.stringify(presetToSave));
