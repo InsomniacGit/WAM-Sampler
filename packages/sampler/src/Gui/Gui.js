@@ -12,12 +12,12 @@ let style = `
     position: relative;
     width: 280px;
     height: 50px;
-	padding: 10px;
+	padding: 0px;
 }
 
 .wrapper canvas {
     position: absolute;
-    top: 10;
+    top: 0;
     left: 10;
 }
 
@@ -51,6 +51,7 @@ let style = `
 
     width: 600px;
     height: 350px;
+	background-color: rgba(0, 0, 0, 0.5);
     /* background-color: blue; */
 
 	box-shadow: 10px 10px 5px #888888;	
@@ -64,22 +65,22 @@ let style = `
 	left: 0;
 	width: 1200px;
 	height: 700px;
-	background-image: url("./Gui/img.jpg");
+	background-image: url("./Gui/imgOrange.jpg");
 	background-size: 50% 50%;
 	background-repeat: repeat;
 	
 	z-index: -1;
 	animation: move 30s infinite linear;
-  }
+}
   
-  @keyframes move {
+@keyframes move {
 	0% {
-	  transform: translate(0%, 0%);
+		transform: translate(0%, 0%);
 	}
 	100% {
-	  transform: translate(-50%, -50%);
+		transform: translate(-50%, -50%);
 	}
-  }
+}
   
 
 #waveform {
@@ -89,10 +90,10 @@ let style = `
 /* Label soundname */
 #soundName {
     width: 280px;
-    height: 12.5px;
-	padding: 10px 10px 0px 10px;
+    height: 20px;
+	padding: 10px;
     margin: 0px;
-    font-size: 12.5px;
+    font-size: 20px;
     font-weight: bold;
     text-align: center;
 	color: white;
@@ -123,11 +124,6 @@ let style = `
 	margin: 0px;
 }
 
-
-
-
-
-/* Michel BUFFA */
 #matrix {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -177,35 +173,34 @@ let style = `
 
 
 
-#volumeGain {
-	left: 2px;
-	top: 12px;
-}
-
-#volumeGain div {
-	color: black;
-	font-family: "Verdana";
-	font-size: 8px;
-}
-
-.knob-wrapper {
-    display: flex;
-    justify-content: center;
+#knobs {
+	display: grid;
+	justify-content: center;
+	justify-items: center;
 	align-items: center;
+	width: 280px;
+	height: 165px;
+	padding: 10px;
+	grid-template-columns: repeat(5, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	gap: 5px;
 }
 
 .knob {
-    display: inline-flex;
+	display: flex;
 	flex-direction: column;
+	justify-content: center;
+	justify-items: center;
     align-items: center;
-    margin: 0 10px;
+	width: 50px;
+	height: 50px;
 }
 
 .knob label {
-	margin-top: 5px;
 	text-align: center;
 	color: white;
 	text-shadow: 0px 0px 1px black;
+	font-size: 15px;
 }
 
 `;
@@ -297,19 +292,19 @@ let template = `
 			<button id="savePreset">Save preset</button>
 			<button id="deletePreset">Delete preset</button>
 		</div>
-		<br>
+		<div id="knobs">
 			<div class="knob" id="volumeGain">
-				<webaudio-knob  id="knob1" height="40" width="40" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+				<webaudio-knob  id="knob1" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
 				<label for="knob1">Volume</label>
 			</div>
 			<div class="knob" id="pan">
-				<webaudio-knob  id="knob2" height="40" width="40" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
+				<webaudio-knob  id="knob2" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
 				<label for="knob2">Pan</label>
 			</div>
 			<div class="knob" id="tone">
-				<webaudio-knob  id="knob3" height="40" width="40" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
+				<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
 				<label for="knob3">Tone</label>
-			</div>
+			</div>						
 		</div>
 	</div>
 </div>
@@ -340,6 +335,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.plugin = plugin;
 
 		this.setKnobs();
+		
 
 		this.samplePlayers = [];
 
@@ -428,36 +424,30 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	setKnobs() {
-		this.shadowRoot
-			.querySelector('#knob1')
-			.addEventListener('input', (e) => {
-				//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
+		this.shadowRoot.querySelector('#knob1').addEventListener('input', (e) => {
+			//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
 
-				if(this.player == undefined) return;
+			if(this.player == undefined) return;
 
-				this.player.effects.volumeGain = parseFloat(e.target.value);
-			});
+			this.player.effects.volumeGain = parseFloat(e.target.value);
+		});
 		
-		this.shadowRoot
-			.querySelector('#knob2')
-			.addEventListener('input', (e) => {
-				//this.plugin.audioNode.setParamsValues({ pan: e.target.value });
+		this.shadowRoot.querySelector('#knob2').addEventListener('input', (e) => {
+			//this.plugin.audioNode.setParamsValues({ pan: e.target.value });
 
-				if(this.player == undefined) return;
+			if(this.player == undefined) return;
 
-				this.player.effects.pan = parseFloat(e.target.value);
+			this.player.effects.pan = parseFloat(e.target.value);
 
-			});
+		});
 		
-		this.shadowRoot
-			.querySelector('#knob3')
-			.addEventListener('input', (e) => {
-				//this.plugin.audioNode.setParamsValues({ tone: e.target.value });
+		this.shadowRoot.querySelector('#knob3').addEventListener('input', (e) => {
+			//this.plugin.audioNode.setParamsValues({ tone: e.target.value });
 
-				if(this.player == undefined) return;
-				
-				this.player.effects.tone = parseFloat(e.target.value);
-			});
+			if(this.player == undefined) return;
+
+			this.player.effects.tone = parseFloat(e.target.value);
+		});
 	}
 
 	setPad(index) {
@@ -754,11 +744,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone)
+						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 						effects: {
-							volumeGain: samplePlayer.effects.volumeGain,
-							pan: samplePlayer.effects.pan,
-							tone: samplePlayer.effects.tone
+							volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
+							pan: Math.round(samplePlayer.effects.pan * 100) / 100,
+							tone: Math.round(samplePlayer.effects.tone * 100) / 100
 						}
 					}
 				});
@@ -790,11 +780,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 					leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 					rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-					// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone)
+					// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 					effects: {
-						volumeGain: samplePlayer.effects.volumeGain,
-						pan: samplePlayer.effects.pan,
-						tone: samplePlayer.effects.tone
+						volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
+						pan: Math.round(samplePlayer.effects.pan * 100) / 100,
+						tone: Math.round(samplePlayer.effects.tone * 100) / 100
 					}
 				}
 			});

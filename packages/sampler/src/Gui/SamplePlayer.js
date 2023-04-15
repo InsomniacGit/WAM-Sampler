@@ -9,7 +9,7 @@ export default class SamplePlayer {
         this.pluginAudioNode = pluginAudioNode;
         // effects
         this.effects = {};
-        this.effects.volumeGain = 0.60;
+        this.effects.volumeGain = 0.5;
         this.effects.pan = 0;
         this.effects.tone = 0;
 
