@@ -72,7 +72,7 @@ BufferLoader.prototype.load = function() {
     // console.log("Loading tracks... please wait...");
     // console.log("BufferLoader.prototype.load urlList size = " + this.urlList.length);
     for (var i = 0; i < this.urlList.length; ++i){
-        if(this.urlList[i] === "") {
+        if(this.urlList[i] === "" || this.urlList[i] === null || this.urlList[i] === undefined) {
             this.bufferList[i] = null;
             this.loadCount++;
         }

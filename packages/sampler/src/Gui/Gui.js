@@ -341,9 +341,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 	// plugin = the same that is passed in the DSP part. It's the instance
 	// of the class that extends WebAudioModule. It's an Observable plugin
 
-	static preset1URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
-	static preset2URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
-
 	static URLs = [];
 
 	constructor(plugin) {
@@ -391,6 +388,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On créé les options du select des presets
 		this.createPresetOptions();
+
+		// Ajoute le drag and drop
+		this.setAllDragAndDrop();
 
 		// Ajoute les listeners sur le select des presets
 		this.setPreset();
@@ -470,9 +470,179 @@ export default class SamplerHTMLElement extends HTMLElement {
 		});
 	}
 
+	setAllDragAndDrop() {
+		// On ajoute les listeners sur les pads
+		this.shadowRoot.querySelectorAll('.padButton').forEach((b) => {
+			b.setAttribute('draggable', true);
+
+			b.addEventListener('dragstart', (e) => {
+				//console.log('dragstart');
+				const dragIndex = parseInt(e.target.id.replace('pad', ''));
+				e.dataTransfer.setData('text/plain', dragIndex);
+			});
+
+			b.addEventListener('dragover', (e) => {
+				//console.log('dragover');
+				e.preventDefault();
+			});
+
+			b.addEventListener('drop', (e) => {
+				//console.log('drop');
+				e.preventDefault();
+				e.stopPropagation();
+				const dropIndex = parseInt(e.target.id.replace('pad', ''));
+				const dragIndex = e.dataTransfer.getData('text/plain');
+				if(dragIndex != dropIndex){
+					this.swapSample(dragIndex, dropIndex);
+				}
+			});	
+			
+			b.addEventListener('dragend', (e) => {
+				//console.log('dragend');
+				e.preventDefault();
+			});
+		});
+	}
+
+	setDragAndDropAfterDrop(index1, index2) {
+		// On ajoute les listeners sur les pads index1 et index2
+		const b1 = this.shadowRoot.querySelector('#pad' + index1);
+		const b2 = this.shadowRoot.querySelector('#pad' + index2);
+
+		b1.addEventListener('dragstart', (e) => {
+			//console.log('dragstart');
+			const dragIndex = parseInt(e.target.id.replace('pad', ''));
+			e.dataTransfer.setData('text/plain', dragIndex);
+		});
+
+		b1.addEventListener('dragover', (e) => {
+			//console.log('dragover');
+			e.preventDefault();
+		});
+
+		b1.addEventListener('drop', (e) => {
+			//console.log('drop');
+			e.preventDefault();
+			e.stopPropagation();
+			const dropIndex = parseInt(e.target.id.replace('pad', ''));
+			const dragIndex = e.dataTransfer.getData('text/plain');
+			if(dragIndex != dropIndex){
+				this.swapSample(dragIndex, dropIndex);
+			}
+		});	
+		
+		b1.addEventListener('dragend', (e) => {
+			//console.log('dragend');
+			e.preventDefault();
+		});
+
+		b2.addEventListener('dragstart', (e) => {
+			//console.log('dragstart');
+			const dragIndex = parseInt(e.target.id.replace('pad', ''));
+			e.dataTransfer.setData('text/plain', dragIndex);
+		});
+
+		b2.addEventListener('dragover', (e) => {
+			//console.log('dragover');
+			e.preventDefault();
+		});
+
+		b2.addEventListener('drop', (e) => {
+			//console.log('drop');
+			e.preventDefault();
+			e.stopPropagation();
+			const dropIndex = parseInt(e.target.id.replace('pad', ''));
+			const dragIndex = e.dataTransfer.getData('text/plain');
+			if(dragIndex != dropIndex){
+				this.swapSample(dragIndex, dropIndex);
+			}
+		});	
+		
+		b2.addEventListener('dragend', (e) => {
+			//console.log('dragend');
+			e.preventDefault();
+		});
+	}
+
+	swapSample = (index1, index2) => {
+		const div1 = this.shadowRoot.querySelector('#p' + index1);
+		const div2 = this.shadowRoot.querySelector('#p' + index2);
+
+		// On supprime le button delete si il existe
+		if (div1.querySelector('.deleteSample')) {
+			div1.querySelector('.deleteSample').remove();
+		}
+
+		if (div2.querySelector('.deleteSample')) {
+			div2.querySelector('.deleteSample').remove();
+		}
+
+		// On echange les divs
+		const temp = div1.innerHTML;
+		div1.innerHTML = div2.innerHTML;
+		div2.innerHTML = temp;
+
+		// On remet les id corrects
+		div1.querySelector('.padProgress').id = 'progress' + index1;
+		div1.querySelector('.padButton').id = 'pad' + index1;
+
+		div2.querySelector('.padProgress').id = 'progress' + index2;
+		div2.querySelector('.padButton').id = 'pad' + index2;
+
+		const button1 = this.shadowRoot.querySelector('#pad' + index1);
+		const button2 = this.shadowRoot.querySelector('#pad' + index2);
+
+		// On supprime tout les listeners en cloneant les boutons et en les remplaçant
+		const newButton1 = button1.cloneNode(true);
+		const newButton2 = button2.cloneNode(true);
+
+		button1.parentNode.replaceChild(newButton1, button1);
+		button2.parentNode.replaceChild(newButton2, button2);
+
+		// Echange les URLs
+		const tempURL = SamplerHTMLElement.URLs[index1];
+		SamplerHTMLElement.URLs[index1] = SamplerHTMLElement.URLs[index2];
+		SamplerHTMLElement.URLs[index2] = tempURL;
+
+		// Echange les samplesPlayer
+		const tempPlayer = this.samplePlayers[index1];
+		this.samplePlayers[index1] = this.samplePlayers[index2];
+		this.samplePlayers[index2] = tempPlayer;
+
+		// Si le bouton 1 n'est pas set, on remet le texte par défaut, sinon on le configure
+		if (!button1.classList.contains('set')) {
+			this.setButtonDefaultText(index1);
+		}
+		else {
+			this.setPad(index1);
+		}
+
+		// Si le bouton 2 n'est pas set, on remet le texte par défaut, sinon on le configure
+		if (!button2.classList.contains('set')) {
+			this.setButtonDefaultText(index2);
+		}
+		else {
+			this.setPad(index2);
+		}
+
+		// On remet les listeners
+		this.setDragAndDropAfterDrop(index1, index2);
+
+		// console.log(div1);
+		// console.log(div2);
+	}
+
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
-		b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+		// Si dans l'url à l'index il y a un '/' et un '.' on split le nom du fichier
+		// sinon on affiche l'url
+		// console.log("URL name = " + SamplerHTMLElement.URLs[index]);
+		if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
+			b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+		}
+		else {
+			b.innerHTML = SamplerHTMLElement.URLs[index];
+		}
 
 		b.classList.add('set');
 
@@ -523,7 +693,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			// On ajoute la class .selected au bouton cliqué
 			b.classList.add('selected');
-
 		};
 	}
 
@@ -609,6 +778,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 		// Si il n'y a pas de localStorage égale à presetValue, on charge les sons par défaut
 		if (!localStorage.getItem(presetValue)) {
+			//console.log(SamplerHTMLElement.URLs);
 			// on charge les sons par défaut
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
@@ -633,6 +803,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On récupère le preset à charger
 			const presetToLoad = JSON.parse(localStorage.getItem(presetValue));
 
+			//console.log(SamplerHTMLElement.URLs);
 			// on charge les sons du preset
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
@@ -667,10 +838,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 	loadPresetUrls = () => {
 		const preset = this.shadowRoot.querySelector('#selectPreset').value;
 
-		if (preset === "factoryPreset1") {
+		if (preset == "factoryPreset1") {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
-				SamplerHTMLElement.URLs = SamplerHTMLElement.preset1URLs;
+				SamplerHTMLElement.URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
 				//console.log("factoryPreset1");
 			}
 			else {
@@ -688,10 +859,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 				SamplerHTMLElement.URLs = newURLs;
 				//console.log("factoryPreset1 from localStorage");
 			}
-		} else if (preset === "factoryPreset2") {
+		} else if (preset == "factoryPreset2") {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
-				SamplerHTMLElement.URLs = SamplerHTMLElement.preset2URLs;
+				SamplerHTMLElement.URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
 				//console.log("factoryPreset2");
 			}
 			else {
@@ -763,11 +934,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		for (let i = 0; i < 16; i++) {
 			const b = this.shadowRoot.querySelector('#pad' + i);
 			// On remet le texte par défaut (touche clavier)
-			this.setAllButtonDefaultText();
 			b.classList.remove('set');
 			// On supprime les listeners
 			b.onclick = null;
 		}
+		this.setAllButtonDefaultText();
 
 		// On reset le nom du son
 		this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
@@ -835,7 +1006,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				let presetToSave = [];
 				this.samplePlayers.forEach((samplePlayer, index) => {
 					// Si le samplePlayer n'est pas vide
-					if (samplePlayer !== null) {
+					if (samplePlayer !== null && samplePlayer !== undefined) {
 						presetToSave[index] = {
 							url: SamplerHTMLElement.URLs[index],
 
@@ -874,7 +1045,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			let presetToSave = [];
 			this.samplePlayers.forEach((samplePlayer, index) => {
 				// Si le samplePlayer n'est pas vide
-				if (samplePlayer !== null) {
+				if (samplePlayer !== null && samplePlayer !== undefined) {
 					presetToSave[index] = {
 						url: SamplerHTMLElement.URLs[index],
 
@@ -914,14 +1085,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.createPresetOptions();
 			// Si le preset supprimé est factoryPreset2, on charge factoryPreset2
-			if (preset === "factoryPreset2") {
+			if (preset == "factoryPreset2") {
+				SamplerHTMLElement.URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
 				this.changePreset("factoryPreset2");
 			}
 			// Sinon on charge factoryPreset1
 			else {
+				SamplerHTMLElement.URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
 				this.changePreset("factoryPreset1");
 			}
-
 			this.displayPresetButtons();
 
 			console.log(localStorage);
@@ -970,6 +1142,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	setButtonDefaultText = (index) => {
+		index = parseInt(index);
 		switch (index) {
 			case 0:
 				this.shadowRoot.querySelector('#pad0').innerHTML = "W";

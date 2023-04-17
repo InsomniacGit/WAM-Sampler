@@ -141,7 +141,6 @@ export default class SamplePlayer {
         //console.log(elapsedTimeInPixels)
         let x = this.leftTrimBar.x + elapsedTimeInPixels;
         if (x <= this.rightTrimBar.x) {
-
             ctx.lineWidth = 2;
             ctx.strokeStyle = "white";
             ctx.beginPath();
@@ -203,8 +202,8 @@ export default class SamplePlayer {
 
     highLightTrimBarsWhenClose(mousePos) {
         // compute distance between mousePos and trim pos
-        let d = this.distance(mousePos.x, mousePos.y, this.leftTrimBar.x + 5, 4);
-        if ((d < 5) && (!this.rightTrimBar.selected)) {
+        let d = this.distance(mousePos.x, this.leftTrimBar.x);
+        if ((d < 10) && (!this.rightTrimBar.selected) && (d > -5)) {
             this.leftTrimBar.color = "red";
             this.leftTrimBar.selected = true;
         } else {
@@ -212,8 +211,8 @@ export default class SamplePlayer {
             this.leftTrimBar.selected = false;
         }
 
-        d = this.distance(mousePos.x, mousePos.y, this.rightTrimBar.x - 5, 4);
-        if ((d < 5) && (!this.leftTrimBar.selected)) {
+        d = this.distance(mousePos.x, this.rightTrimBar.x);
+        if ((d < 5) && (!this.leftTrimBar.selected) && (d > -10)) {
             this.rightTrimBar.color = "red";
             this.rightTrimBar.selected = true;
         } else {
@@ -224,11 +223,8 @@ export default class SamplePlayer {
         this.updateTrimBars(mousePos);
     }
 
-    distance(x1, y1, x2, y2) {
-        let y = x2 - x1;
-        let x = y2 - y1;
-
-        return Math.sqrt(x * x + y * y);
+    distance(x1, x2) {
+        return (x2-x1);
     }
 
     // on mouse move
