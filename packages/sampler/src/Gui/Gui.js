@@ -135,6 +135,23 @@ let style = `
     /* background-color: yellow; */
 }
 
+.deleteSample {
+	width: 10px;
+	height: 10px;
+	font-size: 8px;
+	font-weight: bold;
+	padding: 0px;
+	margin: 0px;
+	justify-content: center;
+	align-items: center;
+	color: red;
+	background-color: transparent;
+	border: none;
+	position: absolute;
+	top: 5px;
+	left: 50px;
+}
+
 .padbutton {
     width: 66.25px;
     height: 66.25px;
@@ -146,6 +163,10 @@ let style = `
     font-size: 10px;
 	border-radius: 10px;
 	box-shadow: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: relative;
 }
 
 .padactionbutton {
@@ -209,67 +230,67 @@ let template = `
 <div id="sampler">
 	
 	<div id="matrix">
-		<div>
+		<div id="p12">
 			<button class="padbutton" id="pad12">1</button>
 			<progress class="padprogress" id="progress12" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p13">
 			<button class="padbutton" id="pad13">2</button>
 			<progress class="padprogress" id="progress13" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p14">
 			<button class="padbutton" id="pad14">3</button>
 			<progress class="padprogress" id="progress14" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p15">
 			<button class="padbutton" id="pad15">4</button>
 			<progress class="padprogress" id="progress15" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p8">
 			<button class="padbutton" id="pad8">A</button>
 			<progress class="padprogress" id="progress8" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p9">
 			<button class="padbutton" id="pad9">Z</button>
 			<progress class="padprogress" id="progress9" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p10">
 			<button class="padbutton" id="pad10">E</button>
 			<progress class="padprogress" id="progress10" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p11">
 			<button class="padbutton" id="pad11">R</button>
 			<progress class="padprogress" id="progress11" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p4">
 			<button class="padbutton" id="pad4">Q</button>
 			<progress class="padprogress" id="progress4" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p5">
 			<button class="padbutton" id="pad5">S</button>
 			<progress class="padprogress" id="progress5" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p6">
 			<button class="padbutton" id="pad6">D</button>
 			<progress class="padprogress" id="progress6" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p7">
 			<button class="padbutton" id="pad7">F</button>
 			<progress class="padprogress" id="progress7" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p0">
 			<button class="padbutton" id="pad0">W</button>
 			<progress class="padprogress" id="progress0" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p1">
 			<button class="padbutton" id="pad1">X</button>
 			<progress class="padprogress" id="progress1" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p2">
 			<button class="padbutton" id="pad2">C</button>
 			<progress class="padprogress" id="progress2" max="10" value="0"></progress>
 		</div>
-		<div>
+		<div id="p3">
 			<button class="padbutton" id="pad3">V</button>
 			<progress class="padprogress" id="progress3" max="10" value="0"></progress>
 		</div>	  
@@ -320,7 +341,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	// plugin = the same that is passed in the DSP part. It's the instance
 	// of the class that extends WebAudioModule. It's an Observable plugin
 
-	static preset1URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav', '../audio/preset1/hihat.wav'];
+	static preset1URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
 	static preset2URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
 
 	static URLs = [];
@@ -352,7 +373,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	connectedCallback() {
-		console.log("connectedCallback");
 		// On récupère les canvas pour la forme d'onde
 		this.canvas = this.shadowRoot.querySelector('#myCanvas');
 		this.canvasOverlay = this.shadowRoot.querySelector('#myCanvasOverlay');
@@ -456,6 +476,17 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		b.classList.add('set');
 
+		// Ajoute un petit bouton pour supprimer le sample en haut à droite
+		const deleteSample = document.createElement('button');
+		deleteSample.classList.add('deleteSample');
+		deleteSample.id = 'deleteSample' + index;
+		deleteSample.innerHTML = 'X';
+		deleteSample.onclick = (e) => {
+			this.deleteSample(index);
+		}
+		b.appendChild(deleteSample);
+		
+
 		b.onclick = (e) => {
 			// passe le bouton en active, supprie le active des autres padbutton
 			// console.log("On dessine et on joue son " + index)
@@ -470,10 +501,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.player.drawWaveform();
 
-			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML;
+			// Affiche le nom du son dans le div sans le <button>
+			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
 			this.player.play();
+			//console.log(this.player);
 
 			this.b = e.target;
 
@@ -493,6 +526,42 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		};
 	}
+
+
+	deleteSample(index) {
+		const deleteSample = this.shadowRoot.querySelector('#deleteSample' + index);
+		const b = this.shadowRoot.querySelector('#pad' + index);
+
+		// Supprime le click du bouton de suppression
+		b.removeChild(deleteSample);
+
+		// Remet la valeur du progress bar à 0
+		const progressBar = this.shadowRoot.querySelector('#progress' + index);
+		progressBar.value = 0;
+
+		// Suprime le click listener
+		b.onclick = null;
+
+		// Si b est le bouton actif, on clear le canvas
+		if (b.classList.contains('selected')) {
+			this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.canvasContextOverlay.clearRect(0, 0, this.canvas.width, this.canvas.height);
+			this.player = null;
+			this.shadowRoot.querySelector('#soundName').innerHTML = 'Waveform';
+		}
+
+		// Supprime le samplePlayer
+		this.samplePlayers[index] = null;
+
+		// Supprime le bouton du sample
+		b.innerHTML = '';
+		b.classList.remove('set');
+		b.classList.remove('selected');
+
+		// Remet le texte par défaut
+		this.setButtonDefaultText(index);
+	}
+
 
 	setPreset = () => {
 		const preset = this.shadowRoot.querySelector('#selectPreset');
@@ -517,7 +586,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			for (let i = 0; i < 16; i++) {
 				const b = this.shadowRoot.querySelector('#pad' + i);
 				// On remet le texte par défaut (touche clavier)
-				this.setButtonDefaultText();
+				this.setAllButtonDefaultText();
 				b.classList.remove('set');
 				// On supprime les listeners
 				b.onclick = null;
@@ -533,6 +602,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	loadSounds = (presetValue) => {
+		// On remet toutes les progress bar à 0
+		for (let i = 0; i < 16; i++) {
+			const progressBar = this.shadowRoot.querySelector('#progress' + i);
+			progressBar.value = 0;
+		}
 		// Si il n'y a pas de localStorage égale à presetValue, on charge les sons par défaut
 		if (!localStorage.getItem(presetValue)) {
 			// on charge les sons par défaut
@@ -541,12 +615,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.decodedSounds = bufferList;
 				// Pour chaque son on créé un SamplePlayer
 				this.decodedSounds.forEach((decodedSound, index) => {
-					this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+					// Si bufferList est vide on passe au suivant
+					if (decodedSound != undefined){
+						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
-					this.setPad(index);
-					this.displayPresetButtons();
+						this.setPad(index);
+						this.displayPresetButtons();
 
-					window.requestAnimationFrame(this.handleAnimationFrame);
+						window.requestAnimationFrame(this.handleAnimationFrame);
+					}
 				});
 			});
 
@@ -562,21 +639,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.decodedSounds = bufferList;
 				// Pour chaque son on créé un SamplePlayer
 				this.decodedSounds.forEach((decodedSound, index) => {
-					this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+					if(decodedSound != undefined){
+						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
-					// On récupère les leftTrim et rightTrim du preset
-					this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
-					this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
+						// On récupère les leftTrim et rightTrim du preset
+						this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
+						this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
 
-					// On récupère les effets du preset
-					this.samplePlayers[index].effects.volumeGain = presetToLoad[index].effects.volumeGain;
-					this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
-					this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
+						// On récupère les effets du preset
+						this.samplePlayers[index].effects.volumeGain = presetToLoad[index].effects.volumeGain;
+						this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
+						this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
-					this.setPad(index);
-					this.displayPresetButtons();
+						this.setPad(index);
+						this.displayPresetButtons();
 
-					window.requestAnimationFrame(this.handleAnimationFrame);
+						window.requestAnimationFrame(this.handleAnimationFrame);
+					}
 				});
 			});
 
@@ -592,33 +671,43 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = SamplerHTMLElement.preset1URLs;
-				console.log("factoryPreset1");
+				//console.log("factoryPreset1");
 			}
 			else {
 				// Pour chaque index du preset, on récupère les urls
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					newURLs[index] = sample.url;
+					if (sample != null){
+						newURLs[index] = sample.url;
+					}
+					else {
+						newURLs[index] = '';
+					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				console.log("factoryPreset1 from localStorage");
+				//console.log("factoryPreset1 from localStorage");
 			}
 		} else if (preset === "factoryPreset2") {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = SamplerHTMLElement.preset2URLs;
-				console.log("factoryPreset2");
+				//console.log("factoryPreset2");
 			}
 			else {
 				// Pour chaque index du preset, on récupère les urls et on les stocke dans un nouveau tableau
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					newURLs[index] = sample.url;
+					if (sample != null){
+						newURLs[index] = sample.url;
+					}
+					else {
+						newURLs[index] = '';
+					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				console.log("factoryPreset2 from localStorage");
+				//console.log("factoryPreset2 from localStorage");
 			}
 		}
 		else {
@@ -629,14 +718,19 @@ export default class SamplerHTMLElement extends HTMLElement {
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					newURLs[index] = sample.url;
+					if (sample != null){
+						newURLs[index] = sample.url;
+					}
+					else {
+						newURLs[index] = '';
+					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				console.log("customPreset from localStorage");
+				//console.log("customPreset from localStorage");
 			}
 			else {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
-				console.log("Error loadPresetUrls");
+				//console.log("Error loadPresetUrls");
 			}
 		}
 
@@ -669,7 +763,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		for (let i = 0; i < 16; i++) {
 			const b = this.shadowRoot.querySelector('#pad' + i);
 			// On remet le texte par défaut (touche clavier)
-			this.setButtonDefaultText();
+			this.setAllButtonDefaultText();
 			b.classList.remove('set');
 			// On supprime les listeners
 			b.onclick = null;
@@ -733,22 +827,28 @@ export default class SamplerHTMLElement extends HTMLElement {
 			else if (localStorage.getItem(presetName) !== null) {
 				alert("Le nom du preset existe déjà");
 			}
+			else if (presetName === null) {
+				// Si l'utilisateur annule la saisie
+			}
 			else {
 				// Création du nouveau preset
 				let presetToSave = [];
 				this.samplePlayers.forEach((samplePlayer, index) => {
-					presetToSave[index] = {
-						url: SamplerHTMLElement.URLs[index],
+					// Si le samplePlayer n'est pas vide
+					if (samplePlayer !== null) {
+						presetToSave[index] = {
+							url: SamplerHTMLElement.URLs[index],
 
-						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
-						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
-						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
+							// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
+							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
+							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
-						effects: {
-							volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
-							pan: Math.round(samplePlayer.effects.pan * 100) / 100,
-							tone: Math.round(samplePlayer.effects.tone * 100) / 100
+							// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
+							effects: {
+								volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
+								pan: Math.round(samplePlayer.effects.pan * 100) / 100,
+								tone: Math.round(samplePlayer.effects.tone * 100) / 100
+							}
 						}
 					}
 				});
@@ -773,18 +873,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// Sauvegarde le preset dans le localStorage avec les URLs et leur leftTrimBar.x et rightTrimBar.x
 			let presetToSave = [];
 			this.samplePlayers.forEach((samplePlayer, index) => {
-				presetToSave[index] = {
-					url: SamplerHTMLElement.URLs[index],
+				// Si le samplePlayer n'est pas vide
+				if (samplePlayer !== null) {
+					presetToSave[index] = {
+						url: SamplerHTMLElement.URLs[index],
 
-					// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
-					leftTrim: Math.round(samplePlayer.leftTrimBar.x),
-					rightTrim: Math.round(samplePlayer.rightTrimBar.x),
+						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
+						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
+						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-					// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
-					effects: {
-						volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
-						pan: Math.round(samplePlayer.effects.pan * 100) / 100,
-						tone: Math.round(samplePlayer.effects.tone * 100) / 100
+						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
+						effects: {
+							volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
+							pan: Math.round(samplePlayer.effects.pan * 100) / 100,
+							tone: Math.round(samplePlayer.effects.tone * 100) / 100
+						}
 					}
 				}
 			});
@@ -847,7 +950,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 
-	setButtonDefaultText = () => {
+	setAllButtonDefaultText = () => {
 		this.shadowRoot.querySelector('#pad0').innerHTML = "W";
 		this.shadowRoot.querySelector('#pad1').innerHTML = "X";
 		this.shadowRoot.querySelector('#pad2').innerHTML = "C";
@@ -864,6 +967,59 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.shadowRoot.querySelector('#pad13').innerHTML = "2";
 		this.shadowRoot.querySelector('#pad14').innerHTML = "3";
 		this.shadowRoot.querySelector('#pad15').innerHTML = "4";
+	}
+
+	setButtonDefaultText = (index) => {
+		switch (index) {
+			case 0:
+				this.shadowRoot.querySelector('#pad0').innerHTML = "W";
+				break;
+			case 1:
+				this.shadowRoot.querySelector('#pad1').innerHTML = "X";
+				break;
+			case 2:
+				this.shadowRoot.querySelector('#pad2').innerHTML = "C";
+				break;
+			case 3:
+				this.shadowRoot.querySelector('#pad3').innerHTML = "V";
+				break;
+			case 4:
+				this.shadowRoot.querySelector('#pad4').innerHTML = "Q";
+				break;
+			case 5:
+				this.shadowRoot.querySelector('#pad5').innerHTML = "S";
+				break;
+			case 6:
+				this.shadowRoot.querySelector('#pad6').innerHTML = "D";
+				break;
+			case 7:
+				this.shadowRoot.querySelector('#pad7').innerHTML = "F";
+				break;
+			case 8:
+				this.shadowRoot.querySelector('#pad8').innerHTML = "A";
+				break;
+			case 9:
+				this.shadowRoot.querySelector('#pad9').innerHTML = "Z";
+				break;
+			case 10:
+				this.shadowRoot.querySelector('#pad10').innerHTML = "E";
+				break;
+			case 11:
+				this.shadowRoot.querySelector('#pad11').innerHTML = "R";
+				break;
+			case 12:
+				this.shadowRoot.querySelector('#pad12').innerHTML = "1";
+				break;
+			case 13:
+				this.shadowRoot.querySelector('#pad13').innerHTML = "2";
+				break;
+			case 14:
+				this.shadowRoot.querySelector('#pad14').innerHTML = "3";
+				break;
+			case 15:
+				this.shadowRoot.querySelector('#pad15').innerHTML = "4";
+				break;
+		}
 	}
 
 	setKeyboardPress() {

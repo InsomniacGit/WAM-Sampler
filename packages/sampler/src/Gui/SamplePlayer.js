@@ -62,6 +62,7 @@ export default class SamplePlayer {
         let trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
         // this.bufferSource.start(0, this.leftTrimBar.startTime, trimmedDuration);
         this.pluginAudioNode.play(this.bufferSource, this.effects, this.leftTrimBar.startTime, trimmedDuration);
+        //console.log(this.bufferSource);
 
         this.startTime = this.ctx.currentTime;
 
