@@ -665,7 +665,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// set effects knobs to current values
 			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
-			this.shadowRoot.querySelector('#knob3').value = this.player.effects.tone;
+			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
 
 			//console.log(this.player.effects);
 
