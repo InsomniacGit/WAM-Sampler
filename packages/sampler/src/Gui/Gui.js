@@ -84,6 +84,8 @@ let style = `
   
 
 #waveform {
+	height: 90px;
+	width: 300px;
 	/* background-color: green; */
 }
 
@@ -106,6 +108,8 @@ let style = `
     /* background-color: lightgreen; */
     padding: 10px;
     width: 280px;
+	height: 35px;
+	overflow: hidden;
 }
 
 #selectPreset {
@@ -159,7 +163,6 @@ let style = `
     background-color: #ccc;
     color: black;
     cursor: pointer;
-    font-family: courier;
     font-size: 10px;
 	border-radius: 10px;
 	box-shadow: none;
@@ -193,6 +196,126 @@ let style = `
 }
 
 
+#choice{
+	width: 280px;
+	height: 185px;
+	padding: 10px;
+}
+
+
+#choiceKnobs, #choiceExplorer, #choiceADSR {
+	margin-bottom: 10px;
+	justify-content: center;
+	align-items: center;
+	width: 90px;
+	height: 15px;
+	font-size: 10px;
+	border: none;
+}
+
+#explorer {
+	display: inline-block;
+	width: 280px;
+	height: 160px;
+	padding-bottom: 10px;
+	color: white;
+	text-shadow: 0px 0px 1px black;
+}
+
+#research {
+	display: flex;
+	width: 280px;
+	height: 15px;
+	font-size: 10px;
+	margin-bottom: 5px;
+    justify-content: center;
+	align-items: center;
+}
+
+#search {
+	width: 110px;
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+	& option {
+		font-size: 10px;
+	}
+}
+
+#searchButton {
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin-right: 5px;
+}
+
+#nbResults {
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin-right: 5px;
+}
+
+#timeRange {
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+}
+
+#results {
+	width: 280px;
+	height: 135px;
+	padding-bottom: 10px;
+	display: inline-block;
+	overflow-y: scroll;
+	-ms-overflow-style: none;  /* IE and Edge */
+	scrollbar-width: none;  /* Firefox */
+	&::-webkit-scrollbar { /* Chrome, Safari, Opera */
+		display: none;
+	}
+}
+
+.resultExplorer {
+	display: inline-block;
+	width: 90px;
+	height: 33px;
+	margin-bottom: 3px;
+	margin-right: 1.5px;
+	margin-left: 1.5px;
+}
+
+.resultButton {
+	width: 90px;
+	height: 27px;
+	font-size: 10px;
+	white-space: normal;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	justify-content: center;
+	align-items: center;
+}
+
+.progressExplorer {
+	margin-top: 1px;
+	width: 100%;
+	height: 5px;
+}
+
+#ADSR {
+	display: inline-block;
+	width: 280px;
+	height: 160px;
+	padding-bottom: 10px;
+	color: white;
+	text-shadow: 0px 0px 1px black;
+}
+
+#ADSR h1 {
+	text-align: center;
+}
+
 
 #knobs {
 	display: grid;
@@ -200,8 +323,8 @@ let style = `
 	justify-items: center;
 	align-items: center;
 	width: 280px;
-	height: 165px;
-	padding: 10px;
+	height: 160px;
+	padding-bottom: 10px;
 	grid-template-columns: repeat(5, 1fr);
 	grid-template-rows: repeat(3, 1fr);
 	gap: 5px;
@@ -222,6 +345,10 @@ let style = `
 	color: white;
 	text-shadow: 0px 0px 1px black;
 	font-size: 15px;
+}
+
+.choose {
+	background-color: lightgreen;
 }
 
 `;
@@ -297,6 +424,7 @@ let template = `
 	</div>
 
 	<div id ='parameters'>
+
 		<div id="waveform">
 			<p id="soundName">Waveform</p>
 			<div class="wrapper">
@@ -304,6 +432,7 @@ let template = `
 				<canvas id="myCanvasOverlay" width=280 height=50></canvas>
 			</div>
 		</div>
+
 		<div id="presets">
 			<select id="selectPreset">
 				<option value="factoryPreset1">Factory preset 1</option>
@@ -313,19 +442,42 @@ let template = `
 			<button id="savePreset">Save preset</button>
 			<button id="deletePreset">Delete preset</button>
 		</div>
-		<div id="knobs">
-			<div class="knob" id="volumeGain">
-				<webaudio-knob  id="knob1" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
-				<label for="knob1">Volume</label>
+
+		<div id="choice">
+			<button id="choiceKnobs">Knobs</button>
+			<button id="choiceExplorer">Explorer</button>
+			<button id="choiceADSR">ADSR</button>
+
+			<div id="knobs">
+				<div class="knob" id="volumeGain">
+					<webaudio-knob  id="knob1" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+					<label for="knob1">Volume</label>
+				</div>
+				<div class="knob" id="pan">
+					<webaudio-knob  id="knob2" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
+					<label for="knob2">Pan</label>
+				</div>
+				<div class="knob" id="tone">
+					<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
+					<label for="knob3">Tone</label>
+				</div>			
 			</div>
-			<div class="knob" id="pan">
-				<webaudio-knob  id="knob2" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
-				<label for="knob2">Pan</label>
+
+			<div id="explorer">
+				<div id="research">
+					<input type="text" id="search" name="search" placeholder="Search">
+					<button id="searchButton">Search</button>
+					<select id="nbResults"></select>
+					<select id="timeRange"></select>
+				</div>
+			
+				<div id="results">
+				</div>
 			</div>
-			<div class="knob" id="tone">
-				<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
-				<label for="knob3">Tone</label>
-			</div>						
+
+			<div id="ADSR">
+				<h1>TODO</h1>
+			</div>
 		</div>
 	</div>
 </div>
@@ -356,6 +508,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		
 
 		this.samplePlayers = [];
+
+		this.explorerSamplePlayers = [];
 
 		this.mousePos = { x: 0, y: 0 };
 
@@ -388,6 +542,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On créé les options du select des presets
 		this.createPresetOptions();
+
+		// Ajoute les listeners sur les boutons de choix
+		this.setChoiceButtons();
+
+		// Ajoute les listeners sur l'explorer
+		this.setExplorer();
 
 		// Ajoute le drag and drop
 		this.setAllDragAndDrop();
@@ -467,6 +627,190 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if(this.player == undefined) return;
 
 			this.player.effects.tone = parseFloat(e.target.value);
+		});
+	}
+
+	setChoiceButtons() {
+		const knob = this.shadowRoot.querySelector('#choiceKnobs');
+		const explorer = this.shadowRoot.querySelector('#choiceExplorer');
+		const ADSR = this.shadowRoot.querySelector('#choiceADSR');
+
+		const divKnob = this.shadowRoot.querySelector('#knobs');
+		const divExplorer = this.shadowRoot.querySelector('#explorer');
+		const divADSR = this.shadowRoot.querySelector('#ADSR');
+
+		explorer.classList.add('choose');
+
+		divKnob.style.display = 'none';
+		divExplorer.style.display = 'inline-block';
+		divADSR.style.display = 'none';
+
+		knob.addEventListener('click', (e) => {
+			//console.log('knobs');
+			divKnob.style.display = 'grid';
+			divExplorer.style.display = 'none';
+			divADSR.style.display = 'none';
+
+			knob.classList.add('choose');
+			explorer.classList.remove('choose');
+			ADSR.classList.remove('choose');
+		});
+
+		explorer.addEventListener('click', (e) => {
+			//console.log('explorer');
+			divKnob.style.display = 'none';
+			divExplorer.style.display = 'inline-block';
+			divADSR.style.display = 'none';
+
+			knob.classList.remove('choose');
+			explorer.classList.add('choose');
+			ADSR.classList.remove('choose');
+		});
+
+		ADSR.addEventListener('click', (e) => {
+			//console.log('ADSR');
+			divKnob.style.display = 'none';
+			divExplorer.style.display = 'none';
+			divADSR.style.display = 'inline-block';
+
+			knob.classList.remove('choose');
+			explorer.classList.remove('choose');
+			ADSR.classList.add('choose');
+		});
+	}
+
+	setExplorer() {
+		const search = this.shadowRoot.querySelector('#search');
+		const searchButton = this.shadowRoot.querySelector('#searchButton');
+		const nbResults = this.shadowRoot.querySelector('#nbResults');
+		const time = this.shadowRoot.querySelector('#timeRange');
+		const results = this.shadowRoot.querySelector('#results');
+
+		const apiUrl = 'https://freesound.org/apiv2';
+		const apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
+
+		// Désactive les document.onkeyup et document.onkeydown
+		search.addEventListener('focus', (e) => {
+			this.removeKeyboardPress();
+		});
+
+		// Ajoute les listeners sur le clavier
+		search.addEventListener('blur', (e) => {
+			this.setKeyboardPress();
+		});
+
+		nbResults.innerHTML = 9;
+		nbResults.value = 9;
+
+		// Ajoute les options de nombre de résultats allant de 9 à 60
+		for (let i = 9; i <= 60; i += 3) {
+			const option = document.createElement('option');
+			option.value = i;
+			option.innerHTML = i + ' results';
+			nbResults.appendChild(option);
+		}
+
+		time.innerHTML = 5;
+		time.value = 5;
+
+		// Ajoute les options de temps allant de 1 à 15 secondes
+		for (let i = 1; i <= 15; i++) {
+			const option = document.createElement('option');
+			option.value = i;
+			option.innerHTML = '< ' + i + 's';
+			time.appendChild(option);
+		}
+
+		// Ajoute une options de temps infini
+		const option = document.createElement('option');
+		option.value = 'unlimited';
+		option.innerHTML = 'max';
+		time.appendChild(option);
+
+
+		searchButton.addEventListener('click', (e) => {
+			results.innerHTML = '';
+
+			let arrayOfSoundObjectURLs = [];
+
+			this.getSounds(search.value).then((arrayOfSoundIds) => {
+				arrayOfSoundIds.map((soundObject, index) => {
+					const id = soundObject[0];
+					const name = soundObject[1];
+					const urlOfSoundObject = `${apiUrl}/sounds/${id}/?token=${apiKey}`;
+
+					arrayOfSoundObjectURLs.push(urlOfSoundObject);
+				});
+
+				//console.log(arrayOfSoundObjectURLs);
+
+				// use Promise.all to get all the sound objects
+				Promise.all(arrayOfSoundObjectURLs.map(url => fetch(url)))
+				.then(responses => Promise.all(responses.map(res => res.json())))
+				.then(soundObjects => {
+					// use Promise.all to get all the sound previews as mp3 files
+					const arrayOfSoundPreviews = soundObjects.map(soundObject => soundObject.previews['preview-hq-mp3']);
+					//console.log(arrayOfSoundPreviews);
+
+					arrayOfSoundPreviews.forEach((soundPreview, index) => {
+						this.setResultSound(index, arrayOfSoundIds[index][1]);
+					});
+
+					let bl = new BufferLoader(this.plugin.audioContext, arrayOfSoundPreviews, this.shadowRoot, (bufferList) => {
+						// on a chargé les sons, on stocke sous forme de tableau
+						this.decodedSounds = bufferList;
+
+						//console.log(this.decodedSounds);
+						// Pour chaque son on créé un SamplePlayer
+						this.decodedSounds.forEach((decodedSound, index) => {
+
+							this.explorerSamplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+	
+							window.requestAnimationFrame(this.handleAnimationFrame);
+						});
+					});
+		
+					bl.loadExplorer();
+				});
+			});
+		});	
+	}
+
+
+	getSounds(queryText) {
+		const apiUrl = 'https://freesound.org/apiv2';
+		const apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
+
+		let nbResults = this.shadowRoot.querySelector('#nbResults').value;
+		let time = this.shadowRoot.querySelector('#timeRange').value;
+
+		let url = '';
+
+		if (time === 'unlimited') {
+			url = `${apiUrl}/search/text/?query=${queryText}&token=${apiKey}&page_size=${nbResults}`;
+		}
+		else {
+			url = `${apiUrl}/search/text/?query=${queryText}&token=${apiKey}&page_size=${nbResults}&filter=duration:[0.0 TO ${time}.0]`;
+		}
+
+		const xhr = new XMLHttpRequest();
+		xhr.open('GET', url);
+		xhr.responseType = 'json';
+	
+		return new Promise((resolve, reject) => {
+			xhr.onreadystatechange = () => {
+				if (xhr.readyState === 4) {
+					if (xhr.status === 200) {
+						//console.log(xhr.response.results);
+						const arrayOfSoundIdsAndNames = xhr.response.results.map(sound => [sound.id, sound.name]);
+						resolve(arrayOfSoundIdsAndNames);
+					} 				
+					else {
+						reject(new Error('Failed to get sounds'));
+					}
+				}
+			};
+			xhr.send();
 		});
 	}
 
@@ -631,6 +975,34 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// console.log(div1);
 		// console.log(div2);
 	}
+
+	setResultSound = (index, name) => {
+		// Créé un div resultExplorer pour chaque son
+		const div = document.createElement('div');
+		div.classList.add('resultExplorer');
+		div.id = 'resultExplorer' + index;
+		this.shadowRoot.querySelector('#results').appendChild(div);
+
+		// créé un nouveau bouton avec le son et son nom
+		const b = document.createElement('button');
+		b.classList.add('resultButton');
+		b.id = 'result' + index;
+		b.innerHTML = name;
+		b.addEventListener('click', (e) => {
+			this.explorerSamplePlayers[index].play();
+		});
+		// Ajoute le bouton à la div
+		this.shadowRoot.querySelector('#resultExplorer' + index).appendChild(b);
+
+		// Ajoute une progressBar à la div
+		const progressExplorer = document.createElement('progress');
+		progressExplorer.classList.add('progressExplorer');
+		progressExplorer.id = 'progressExplorer' + index;
+		progressExplorer.value = 0;
+		progressExplorer.max = 1;
+		this.shadowRoot.querySelector('#resultExplorer' + index).appendChild(progressExplorer);
+	}
+
 
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
@@ -1336,6 +1708,20 @@ export default class SamplerHTMLElement extends HTMLElement {
 			}
 		};
 	}
+
+	removeKeyboardPress = () => {
+		document.onkeydown = null;
+		document.onkeyup = null;
+
+		// Ajoute un listener sur la touche espace pour lancer la recherche
+		document.onkeydown = (e) => {
+			if (e.key === 'Enter') {
+				document.onkeydown = null;
+				this.shadowRoot.querySelector('#searchButton').click();
+				this.shadowRoot.querySelector('#search').blur();
+			}
+		}
+	};
 
 
 	// name of the custom HTML element associated

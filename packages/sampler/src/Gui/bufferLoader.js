@@ -8,7 +8,7 @@ function BufferLoader(context, urlList, root, callback) {
     this.root = root;
 }
 
-BufferLoader.prototype.loadBuffer = function(url, index) {
+BufferLoader.prototype.loadBuffer = function(url, index, isPad) {
     // Load buffer asynchronously
     // console.log('file : ' + url + "loading and decoding");
 
@@ -45,15 +45,33 @@ BufferLoader.prototype.loadBuffer = function(url, index) {
     }
 
     request.onprogress = (e) => {
-        // e.total - 100%
-        // e.value - ?
-        if(e.total !== 0) {
-            //var percent = (e.loaded * 100) / e.total;
 
-            //console.log("loaded " + percent  + "of song " + index);
-            var progress = this.root.querySelector("#progress" + index);
-            progress.value = e.loaded;
-            progress.max = e.total;
+        // Si l'on charge les pads :
+        if(isPad == true) {
+            // e.total - 100%
+            // e.value - ?
+            if(e.total !== 0) {
+                //var percent = (e.loaded * 100) / e.total;
+
+                //console.log("loaded " + percent  + "of song " + index);
+                var progress = this.root.querySelector("#progress" + index);
+                progress.value = e.loaded;
+                progress.max = e.total;
+            }
+        }
+
+        // Si l'on charge les sons dans l'explorer :
+        else {
+            // e.total - 100%
+            // e.value - ?
+            if(e.total !== 0) {
+                //var percent = (e.loaded * 100) / e.total;
+
+                //console.log("loaded " + percent  + "of song " + index);
+                var progress = this.root.querySelector("#progressExplorer" + index);
+                progress.value = e.loaded;
+                progress.max = e.total;
+            }
         }
     }
     
@@ -77,7 +95,25 @@ BufferLoader.prototype.load = function() {
             this.loadCount++;
         }
         else{
-            this.loadBuffer(this.urlList[i], i);
+            this.loadBuffer(this.urlList[i], i, true);
+        }
+    }
+}
+
+BufferLoader.prototype.loadExplorer = function() {
+    // M.BUFFA added these two lines.
+    this.bufferList = [];
+    this.loadCount = 0;
+    //clearLog();
+    // console.log("Loading tracks... please wait...");
+    // console.log("BufferLoader.prototype.load urlList size = " + this.urlList.length);
+    for (var i = 0; i < this.urlList.length; ++i){
+        if(this.urlList[i] === "" || this.urlList[i] === null || this.urlList[i] === undefined) {
+            this.bufferList[i] = null;
+            this.loadCount++;
+        }
+        else{
+            this.loadBuffer(this.urlList[i], i, false);
         }
     }
 }
