@@ -31,25 +31,6 @@ export default class SamplePlayer {
         this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
     }
 
-    // async loadSound(url) {
-    //     const response = await fetch(url);
-    //     const sound = await response.arrayBuffer();
-
-    //     console.log("Sound loaded");
-
-    //     // Let's decode it. This is also asynchronous
-    //     this.ctx.decodeAudioData(sound, (buffer) => {
-    //         console.log("Sound decoded");
-    //         this.decodedSound = buffer;
-
-    //         this.waveformDrawer = new WaveformDrawer();
-    //         this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
-
-    //     }, (e) => {
-    //         console.log("error");
-    //     });
-    // }
-
     connect(node) {
         // les effets sont à la sortie du graphe du sample player
         this.effects.connect(node);
@@ -74,43 +55,6 @@ export default class SamplePlayer {
 
         this.startTime = this.ctx.currentTime;
     }
-
-    // playReverse(){
-    //     this.startTime = this.ctx.currentTime;
-    
-    //     this.newBufferReverse = this.ctx.createBuffer(
-    //         this.decodedSound.numberOfChannels,
-    //         this.decodedSound.length,
-    //         this.ctx.sampleRate
-    //     )
-    
-    //     for (let i = 0; i < this.decodedSound.numberOfChannels; i++) {
-    //         this.channelData = this.decodedSound.getChannelData(i);
-    //        this.newBufferReverse.copyToChannel(this.channelData.reverse(), i)
-    //     };
-    
-    //     this.decodedSound = this.newBufferReverse;
-    
-    //     this.waveformDrawer = new WaveformDrawer();
-    //     this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
-    
-    //     this.bufferSource = this.ctx.createBufferSource();
-    //     this.bufferSource.buffer = this.newBufferReverse;
-    //     this.inputNode = this.bufferSource ;
-    //     this.bufferSource.connect(this.effects.inputNode);
-    
-    //     let bufferDuration = this.bufferSource.buffer.duration;
-    //     // pixelsToSeconds
-    //     this.leftTrimBar.startTime = this.pixelToSeconds(this.leftTrimBar.x, bufferDuration);
-    //     this.trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
-    
-    //     this.pluginAudioNode.play(this);
-    
-    //     this.startTime = this.ctx.currentTime;
-    
-    //     // sourceReverse.connect(ctx.destination);
-    //     //sourceReverse.start();
-    // }
 
     reverse(buffer) {
         let newBuffer = this.ctx.createBuffer(

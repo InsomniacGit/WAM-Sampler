@@ -199,13 +199,11 @@ let style = `
 	box-shadow: 2px 2px 2px red, -2px -2px 2px red, 2px -2px 2px red, -2px 2px 2px red;
 }
 
-
 #choice{
 	width: 280px;
 	height: 185px;
 	padding: 10px;
 }
-
 
 #choiceKnobs, #choiceExplorer, #choiceADSR {
 	margin-bottom: 10px;
@@ -300,7 +298,7 @@ let style = `
 
 .resultButton {
 	width: 90px;
-	height: 25px;
+	height: 24px;
 	font-size: 10px;
 	white-space: normal;
 	overflow: hidden;
@@ -314,6 +312,10 @@ let style = `
     cursor: pointer;
 	box-shadow: none;
 	position: relative;
+}
+
+.resultButton.set {
+	background-color: lightgreen;
 }
 
 .progressExplorer {
@@ -366,8 +368,22 @@ let style = `
 	font-size: 15px;
 }
 
+#reverse {
+	width: 50px;
+	height: 20px;
+	font-size: 10px;
+	justify-content: center;
+	align-items: center;
+	border-radius: 10px;
+	border: none;
+	color: black;
+	cursor: pointer;
+	box-shadow: none;
+	position: relative;
+}
+
 .choose {
-	background-color: lightgreen;
+	background-color: orange;
 }
 
 `;
@@ -657,7 +673,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if(this.player == undefined) return;
 
 			const reverseSoundBuffer = this.player.reverse(this.player.decodedSound);
-			//console.log(reverseSoundBuffer);
+			
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
 
@@ -782,7 +798,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			searchButton.innerHTML = 'Searching...';
 
 			results.innerHTML = '';
-
+			this.explorerSamplePlayers = [];
 			let arrayOfSoundObjectURLs = [];
 
 			this.getSounds(search.value).then((arrayOfSoundIds) => {
@@ -814,6 +830,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 						this.decodedSounds.forEach((decodedSound, index) => {
 
 							this.explorerSamplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+							
+							const b = this.shadowRoot.querySelector('#result' + index);
+
+							// Passes le button à .set
+							b.classList.add('set');
+							// Ajoute l'attribut draggable
+							b.setAttribute('draggable', 'true');
 	
 							window.requestAnimationFrame(this.handleAnimationFrame);
 						});
@@ -1095,6 +1118,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 
 	setResultSound = (index, name, url) => {
+
 		// Créé un div resultExplorer pour chaque son
 		const div = document.createElement('div');
 		div.classList.add('resultExplorer');
@@ -1106,11 +1130,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.classList.add('resultButton');
 		b.id = 'result' + index;
 		b.innerHTML = name;
+
 		b.addEventListener('click', (e) => {
 			this.explorerSamplePlayers[index].play();
 		});
-		// Ajoute l'attribut draggable
-		b.setAttribute('draggable', 'true');
+
 		b.addEventListener('dragstart', (e) => {
 			e.dataTransfer.setData('id', e.target.id);
 			e.dataTransfer.setData('url', url);
@@ -1140,39 +1164,27 @@ export default class SamplerHTMLElement extends HTMLElement {
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
 		const preset = this.shadowRoot.querySelector('#selectPreset').value;
-		
-		// Si dans l'url à l'index il y a un '/' et un '.' on split le nom du fichier
-		// sinon on affiche l'url
-		// Si l'url n'est pas un fichier local
 
-		// if (SamplerHTMLElement.URLs[index].includes('http')) {
-		// 	b.innerHTML = SamplerHTMLElement.name[index];
-		// }
-		// else if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
-		// 	SamplerHTMLElement.name[index] = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
-		// 	b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
-		// }
-		// else {
-		// 	b.innerHTML = SamplerHTMLElement.URLs[index];
-		// }
 
-		// Si le nom du sample est enregistré dans le localStorage, on l'affiche
-		if (localStorage.getItem(preset)) {
+		if (SamplerHTMLElement.URLs[index].includes('http') && SamplerHTMLElement.name[index]) {
+			b.innerHTML = SamplerHTMLElement.name[index];
+		}
+		else if (SamplerHTMLElement.URLs[index].includes('http') && localStorage.getItem(preset)) {
 			const presetObject = JSON.parse(localStorage.getItem(preset));
 			if (presetObject[index]) {
 				b.innerHTML = presetObject[index].name;
 			}
 		}
-		// Sinon, si le nom est enregistré dans le tableau, on l'affiche
 		else if (SamplerHTMLElement.name[index]) {
 			b.innerHTML = SamplerHTMLElement.name[index];
 		}
-		// Sinon, on affiche l'url en enlevant le chemin et l'extension
-		else {
+		else if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
 			SamplerHTMLElement.name[index] = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
-			b.innerHTML = SamplerHTMLElement.name[index];
+			b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
 		}
-
+		else {
+			b.innerHTML = SamplerHTMLElement.URLs[index];
+		}
 
 		b.classList.add('set');
 
@@ -1269,6 +1281,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// Lorsque le preset est changé, on charge les nouveaux sons
 		preset.onchange = () => {
 
+			preset.blur();
+
+			SamplerHTMLElement.name = [];
+
 			// On récupère les urls du preset
 			const presetValue = this.loadPresetUrls();
 
@@ -1353,6 +1369,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 						this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
 						this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
+						SamplerHTMLElement.name[index] = presetToLoad[index].name;
+
 						this.setPad(index);
 						this.displayPresetButtons();
 
@@ -1432,6 +1450,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	// Fonction qui permet de changer de preset
 	changePreset = (presetName) => {
 
+		SamplerHTMLElement.URLs = [];
 		SamplerHTMLElement.name = [];
 		
 		// On récupère le preset
@@ -1534,7 +1553,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 					if (samplePlayer !== null && samplePlayer !== undefined) {
 						presetToSave[index] = {
 							url: SamplerHTMLElement.URLs[index],
-
 							name: SamplerHTMLElement.name[index],
 
 							// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
@@ -1555,6 +1573,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.createPresetOptions();
 				this.changePreset(presetName);
 				this.displayPresetButtons();
+				
+				SamplerHTMLElement.URLs = presetToSave.map((sample) => {
+					return sample.url;
+				});
+
+				SamplerHTMLElement.name = presetToSave.map((sample) => {
+					return sample.name;
+				});
 			}
 		}
 	}
@@ -1573,7 +1599,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 				if (samplePlayer !== null && samplePlayer !== undefined) {
 					presetToSave[index] = {
 						url: SamplerHTMLElement.URLs[index],
-						
 						name : SamplerHTMLElement.name[index],
 
 						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
@@ -1594,6 +1619,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.createPresetOptions();
 			this.changePreset(preset);
 			this.displayPresetButtons();
+
+			SamplerHTMLElement.URLs = presetToSave.map((sample) => {
+				return sample.url;
+			});
+
+			SamplerHTMLElement.name = presetToSave.map((sample) => {
+				return sample.name;
+			});
 		}
 	}
 
@@ -1602,6 +1635,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		deletePreset.onclick = () => {
 			const preset = this.shadowRoot.querySelector('#selectPreset').value;
+
+			SamplerHTMLElement.name = [];
 
 			// Supprime le preset du localStorage
 			localStorage.removeItem(preset);
@@ -1626,13 +1661,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
 
-		// Si le localStorage ne contient pas le preset, on cache le bouton "deletePreset"
-		if (localStorage.getItem(preset) === null) {
-			deletePreset.style.display = "none";
-		}
-		else {
-			deletePreset.style.display = "inline-block";
-		}
+		// // Si le localStorage ne contient pas le preset, on cache le bouton "deletePreset"
+		// if (localStorage.getItem(preset) === null) {
+		// 	deletePreset.style.display = "none";
+		// }
+		// else {
+		// 	deletePreset.style.display = "inline-block";
+		// }
 
 		if (preset === "factoryPreset1" || preset === "factoryPreset2") {
 			deletePreset.innerHTML = "Reset preset";
