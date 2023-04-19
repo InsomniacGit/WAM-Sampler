@@ -3,11 +3,19 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Simple host that loads a non bundled plugin</title>
+        <script type="module" src="./../../../node_modules/wam-host/wamHost.js"></script>
+        <script type="module" src="./../../../node_modules/wam-plugin/wamPlugin.js"></script>
 </head>
 
-<body>
+<body>  
+        <!-- This is the host
         <main>
                 <div id="mount"></div>
         </main>
         <script type="module" src="host.js"></script>
+        -->
+        <wam-host>
+                <wam-plugin src="../../packages/sampler/src/index.js"></wam-plugin>
+                <!-- <wam-plugin src="../../packages/faustPingPongDelay/plugin/index.js"></wam-plugin> -->
+        </wam-host>
 </body>

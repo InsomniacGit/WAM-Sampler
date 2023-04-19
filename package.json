@@ -29,5 +29,8 @@
       "**/sdk-parammgr/**"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "wam-host": "^1.0.0",
+    "wam-plugin": "^1.0.0"
+  }
 }

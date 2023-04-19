@@ -25,7 +25,7 @@ export default class SamplePlayer {
         this.rightTrimBar = {
             x: this.canvasOverlay.width,
             color: "white"
-        }
+        } 
 
         this.waveformDrawer = new WaveformDrawer();
         this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
@@ -73,6 +73,61 @@ export default class SamplePlayer {
         this.pluginAudioNode.play(this);
 
         this.startTime = this.ctx.currentTime;
+    }
+
+    // playReverse(){
+    //     this.startTime = this.ctx.currentTime;
+    
+    //     this.newBufferReverse = this.ctx.createBuffer(
+    //         this.decodedSound.numberOfChannels,
+    //         this.decodedSound.length,
+    //         this.ctx.sampleRate
+    //     )
+    
+    //     for (let i = 0; i < this.decodedSound.numberOfChannels; i++) {
+    //         this.channelData = this.decodedSound.getChannelData(i);
+    //        this.newBufferReverse.copyToChannel(this.channelData.reverse(), i)
+    //     };
+    
+    //     this.decodedSound = this.newBufferReverse;
+    
+    //     this.waveformDrawer = new WaveformDrawer();
+    //     this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
+    
+    //     this.bufferSource = this.ctx.createBufferSource();
+    //     this.bufferSource.buffer = this.newBufferReverse;
+    //     this.inputNode = this.bufferSource ;
+    //     this.bufferSource.connect(this.effects.inputNode);
+    
+    //     let bufferDuration = this.bufferSource.buffer.duration;
+    //     // pixelsToSeconds
+    //     this.leftTrimBar.startTime = this.pixelToSeconds(this.leftTrimBar.x, bufferDuration);
+    //     this.trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
+    
+    //     this.pluginAudioNode.play(this);
+    
+    //     this.startTime = this.ctx.currentTime;
+    
+    //     // sourceReverse.connect(ctx.destination);
+    //     //sourceReverse.start();
+    // }
+
+    reverse(buffer) {
+        let newBuffer = this.ctx.createBuffer(
+            buffer.numberOfChannels,
+            buffer.length,
+            this.ctx.sampleRate
+        )
+
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+            let channelData = buffer.getChannelData(i);
+            newBuffer.copyToChannel(channelData.reverse(), i)
+        };
+
+        this.waveformDrawer = new WaveformDrawer();
+        this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
+
+        return newBuffer;
     }
 
     start() {

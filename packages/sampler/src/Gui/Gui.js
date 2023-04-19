@@ -479,6 +479,9 @@ let template = `
 				<div class="knob" id="tone">
 					<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
 					<label for="knob3">Tone</label>
+				</div>
+				<div>
+					<button id="reverse">Reverse</button>
 				</div>			
 			</div>
 
@@ -647,6 +650,17 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if(this.player == undefined) return;
 
 			this.player.effects.tone = parseFloat(e.target.value);
+		});
+
+		//button reverse
+		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
+			if(this.player == undefined) return;
+
+			const reverseSoundBuffer = this.player.reverse(this.player.decodedSound);
+			//console.log(reverseSoundBuffer);
+			this.player.decodedSound = reverseSoundBuffer;
+			this.player.drawWaveform();
+
 		});
 	}
 
@@ -1182,13 +1196,17 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
 
-			this.player.drawWaveform();
+			
 
 			// Affiche le nom du son dans le div sans le <button>
 			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
 			this.player.play();
+
+			//this.player.playReverse();
+
+			this.player.drawWaveform();
 
 			this.b = e.target;
 
