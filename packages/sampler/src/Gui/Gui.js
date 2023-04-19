@@ -101,6 +101,9 @@ let style = `
 	color: white;
 	text-shadow: 0px 0px 1px black;
 	font-weight: bold;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
     /* background-color: yellow; */
 }
 
@@ -171,7 +174,6 @@ let style = `
 	position: relative;
 	overflow: hidden;
 	text-overflow: ellipsis;
-
 }
 
 .padactionbutton {
@@ -298,13 +300,20 @@ let style = `
 
 .resultButton {
 	width: 90px;
-	height: 27px;
+	height: 25px;
 	font-size: 10px;
 	white-space: normal;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	justify-content: center;
 	align-items: center;
+	border-radius: 10px;
+    border: none;
+    background-color: #ccc;
+    color: black;
+    cursor: pointer;
+	box-shadow: none;
+	position: relative;
 }
 
 .progressExplorer {
