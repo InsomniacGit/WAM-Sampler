@@ -694,8 +694,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const time = this.shadowRoot.querySelector('#timeRange');
 		const results = this.shadowRoot.querySelector('#results');
 
+		// apiKey : Michel : 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo' 
+		// apiKey : Lucas : 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg'
 		const apiUrl = 'https://freesound.org/apiv2';
-		const apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
+		const apiKey = 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg';
 
 		// Désactive les document.onkeyup et document.onkeydown
 		search.addEventListener('focus', (e) => {
@@ -795,6 +797,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 					});
 		
 					bl.loadExplorer();
+
+					if (!searchButton.classList.contains('error')) {
+						searchButton.disabled = false;
+						searchButton.textContent = 'Search';
+					}
+					else {
+						searchButton.disabled = false;
+						searchButton.textContent = 'Error';
+					}
+				})
+				.catch((error) => {
+					console.log(error);
+					searchButton.classList.add('error');
+					searchButton.disabled = false;
+					searchButton.textContent = 'Error';
 				});
 			});
 		});	
@@ -802,8 +819,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 
 	getSounds(queryText) {
+		// apiKey : Michel : 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo' 
+		// apiKey : Lucas : 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg'
 		const apiUrl = 'https://freesound.org/apiv2';
-		const apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
+		const apiKey = 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg';
 
 		let nbResults = this.shadowRoot.querySelector('#nbResults').value;
 		let time = this.shadowRoot.querySelector('#timeRange').value;
@@ -828,26 +847,24 @@ export default class SamplerHTMLElement extends HTMLElement {
 					if (xhr.status === 200) {
 						const arrayOfSoundIdsAndNames = xhr.response.results.map(sound => [sound.id, sound.name]);
 						resolve(arrayOfSoundIdsAndNames);
-						searchButton.disabled = false;
-						searchButton.textContent = 'Search';
 					} 
 					else if (xhr.status === 404) {
 						reject(new Error('Sounds not found : ' + xhr.response.detail));
-						searchButton.disabled = false;
-						searchButton.classList.add('error');
-						searchButton.textContent = 'Error';
+						if(!searchButton.contains('error')){
+							searchButton.classList.add('error');
+						}
 					}
 					else if (xhr.status === 429) {
 						reject(new Error('Too many requests : ' + xhr.response.detail));
-						searchButton.disabled = false;
-						searchButton.classList.add('error');
-						searchButton.textContent = 'Error';
+						if(!searchButton.contains('error')){
+							searchButton.classList.add('error');
+						}
 					}
 					else {
 						reject(new Error('Failed to get sounds : ' + xhr.response.detail));
-						searchButton.disabled = false;
-						searchButton.classList.add('error');
-						searchButton.textContent = 'Error';
+						if(!searchButton.contains('error')){
+							searchButton.classList.add('error');
+						}
 					}
 				}
 			};
@@ -1050,6 +1067,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// On remet les listeners
 		this.setDragAndDropAfterDrop(index2);
 	}
+
+
 
 
 	setResultSound = (index, name, url) => {
