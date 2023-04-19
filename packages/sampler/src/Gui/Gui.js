@@ -166,10 +166,12 @@ let style = `
     font-size: 10px;
 	border-radius: 10px;
 	box-shadow: none;
-	display: flex;
 	justify-content: center;
 	align-items: center;
 	position: relative;
+	overflow: hidden;
+	text-overflow: ellipsis;
+
 }
 
 .padactionbutton {
@@ -233,7 +235,7 @@ let style = `
 }
 
 #search {
-	width: 110px;
+	width: 100px;
 	height: 15px;
 	font-size: 10px;
 	padding: 0px;
@@ -245,9 +247,17 @@ let style = `
 
 #searchButton {
 	height: 15px;
+	width: 58px;
 	font-size: 10px;
 	padding: 0px;
 	margin-right: 5px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.error {
+	background-color: red;
 }
 
 #nbResults {
@@ -465,7 +475,7 @@ let template = `
 
 			<div id="explorer">
 				<div id="research">
-					<input type="text" id="search" name="search" placeholder="Search">
+					<input type="text" id="search" name="search" placeholder="Freesound">
 					<button id="searchButton">Search</button>
 					<select id="nbResults"></select>
 					<select id="timeRange"></select>
@@ -494,6 +504,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	// of the class that extends WebAudioModule. It's an Observable plugin
 
 	static URLs = [];
+	static name = [];
 
 	constructor(plugin) {
 		super();
@@ -646,7 +657,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		divADSR.style.display = 'none';
 
 		knob.addEventListener('click', (e) => {
-			//console.log('knobs');
 			divKnob.style.display = 'grid';
 			divExplorer.style.display = 'none';
 			divADSR.style.display = 'none';
@@ -657,7 +667,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		});
 
 		explorer.addEventListener('click', (e) => {
-			//console.log('explorer');
 			divKnob.style.display = 'none';
 			divExplorer.style.display = 'inline-block';
 			divADSR.style.display = 'none';
@@ -668,7 +677,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		});
 
 		ADSR.addEventListener('click', (e) => {
-			//console.log('ADSR');
 			divKnob.style.display = 'none';
 			divExplorer.style.display = 'none';
 			divADSR.style.display = 'inline-block';
@@ -702,9 +710,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 		nbResults.innerHTML = 9;
 		nbResults.value = 9;
 
-		// Ajoute les options de nombre de résultats allant de 9 à 60
-		for (let i = 9; i <= 60; i += 3) {
-			const option = document.createElement('option');
+		// Ajoute l'option 9
+		let option = document.createElement('option');
+		option.value = 9;
+		option.innerHTML = 9 + ' results';
+		nbResults.appendChild(option);
+
+		// Ajoute les options de nombre de résultats allant de 15 à 60
+		for (let i = 15; i <= 60; i += 15) {
+			option = document.createElement('option');
 			option.value = i;
 			option.innerHTML = i + ' results';
 			nbResults.appendChild(option);
@@ -713,27 +727,41 @@ export default class SamplerHTMLElement extends HTMLElement {
 		time.innerHTML = 5;
 		time.value = 5;
 
-		// Ajoute les options de temps allant de 1 à 15 secondes
-		for (let i = 1; i <= 15; i++) {
-			const option = document.createElement('option');
+		// Ajoute les options de temps allant de 1 à 5 secondes
+		for (let i = 1; i <= 5; i++) {
+			option = document.createElement('option');
+			option.value = i;
+			option.innerHTML = '< ' + i + 's';
+			time.appendChild(option);
+		}
+
+		// Ajoute les options de temps allant de 10 à 20 secondes
+		for (let i = 10; i <= 20; i += 5) {
+			option = document.createElement('option');
 			option.value = i;
 			option.innerHTML = '< ' + i + 's';
 			time.appendChild(option);
 		}
 
 		// Ajoute une options de temps infini
-		const option = document.createElement('option');
+		option = document.createElement('option');
 		option.value = 'unlimited';
-		option.innerHTML = 'max';
+		option.innerHTML = 'all';
 		time.appendChild(option);
 
 
 		searchButton.addEventListener('click', (e) => {
+			
+			searchButton.disabled = true;
+			searchButton.classList.remove('error');
+			searchButton.innerHTML = 'Searching...';
+
 			results.innerHTML = '';
 
 			let arrayOfSoundObjectURLs = [];
 
 			this.getSounds(search.value).then((arrayOfSoundIds) => {
+
 				arrayOfSoundIds.map((soundObject, index) => {
 					const id = soundObject[0];
 					const name = soundObject[1];
@@ -742,25 +770,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 					arrayOfSoundObjectURLs.push(urlOfSoundObject);
 				});
 
-				//console.log(arrayOfSoundObjectURLs);
-
 				// use Promise.all to get all the sound objects
 				Promise.all(arrayOfSoundObjectURLs.map(url => fetch(url)))
 				.then(responses => Promise.all(responses.map(res => res.json())))
 				.then(soundObjects => {
 					// use Promise.all to get all the sound previews as mp3 files
 					const arrayOfSoundPreviews = soundObjects.map(soundObject => soundObject.previews['preview-hq-mp3']);
-					//console.log(arrayOfSoundPreviews);
 
 					arrayOfSoundPreviews.forEach((soundPreview, index) => {
-						this.setResultSound(index, arrayOfSoundIds[index][1]);
+						this.setResultSound(index, arrayOfSoundIds[index][1], arrayOfSoundPreviews[index]);
 					});
 
 					let bl = new BufferLoader(this.plugin.audioContext, arrayOfSoundPreviews, this.shadowRoot, (bufferList) => {
 						// on a chargé les sons, on stocke sous forme de tableau
 						this.decodedSounds = bufferList;
 
-						//console.log(this.decodedSounds);
 						// Pour chaque son on créé un SamplePlayer
 						this.decodedSounds.forEach((decodedSound, index) => {
 
@@ -783,6 +807,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		let nbResults = this.shadowRoot.querySelector('#nbResults').value;
 		let time = this.shadowRoot.querySelector('#timeRange').value;
+		const searchButton = this.shadowRoot.querySelector('#searchButton');
 
 		let url = '';
 
@@ -801,12 +826,28 @@ export default class SamplerHTMLElement extends HTMLElement {
 			xhr.onreadystatechange = () => {
 				if (xhr.readyState === 4) {
 					if (xhr.status === 200) {
-						//console.log(xhr.response.results);
 						const arrayOfSoundIdsAndNames = xhr.response.results.map(sound => [sound.id, sound.name]);
 						resolve(arrayOfSoundIdsAndNames);
-					} 				
+						searchButton.disabled = false;
+						searchButton.textContent = 'Search';
+					} 
+					else if (xhr.status === 404) {
+						reject(new Error('Sounds not found : ' + xhr.response.detail));
+						searchButton.disabled = false;
+						searchButton.classList.add('error');
+						searchButton.textContent = 'Error';
+					}
+					else if (xhr.status === 429) {
+						reject(new Error('Too many requests : ' + xhr.response.detail));
+						searchButton.disabled = false;
+						searchButton.classList.add('error');
+						searchButton.textContent = 'Error';
+					}
 					else {
-						reject(new Error('Failed to get sounds'));
+						reject(new Error('Failed to get sounds : ' + xhr.response.detail));
+						searchButton.disabled = false;
+						searchButton.classList.add('error');
+						searchButton.textContent = 'Error';
 					}
 				}
 			};
@@ -820,95 +861,77 @@ export default class SamplerHTMLElement extends HTMLElement {
 			b.setAttribute('draggable', true);
 
 			b.addEventListener('dragstart', (e) => {
-				//console.log('dragstart');
-				const dragIndex = parseInt(e.target.id.replace('pad', ''));
-				e.dataTransfer.setData('text/plain', dragIndex);
+				e.dataTransfer.setData('id', e.target.id);
 			});
 
 			b.addEventListener('dragover', (e) => {
-				//console.log('dragover');
 				e.preventDefault();
 			});
 
 			b.addEventListener('drop', (e) => {
-				//console.log('drop');
 				e.preventDefault();
 				e.stopPropagation();
-				const dropIndex = parseInt(e.target.id.replace('pad', ''));
-				const dragIndex = e.dataTransfer.getData('text/plain');
-				if(dragIndex != dropIndex){
-					this.swapSample(dragIndex, dropIndex);
+				const dropIndex = e.target.id;
+				const dragIndex = e.dataTransfer.getData('id');
+				const dropUrl = e.dataTransfer.getData('url');
+
+				// Si drag index commence par pad
+				if(dragIndex.startsWith('pad')){
+					if(dragIndex != dropIndex){
+						this.swapSample(dragIndex, dropIndex);
+					}
+				}
+				else if(dragIndex.startsWith('result')){
+					this.addSampleToPad(dragIndex, dropIndex, dropUrl);
 				}
 			});	
 			
 			b.addEventListener('dragend', (e) => {
-				//console.log('dragend');
 				e.preventDefault();
 			});
 		});
 	}
 
-	setDragAndDropAfterDrop(index1, index2) {
-		// On ajoute les listeners sur les pads index1 et index2
+	setDragAndDropAfterDrop(index1) {
+		// On ajoute les listeners sur les pads index1
 		const b1 = this.shadowRoot.querySelector('#pad' + index1);
-		const b2 = this.shadowRoot.querySelector('#pad' + index2);
 
 		b1.addEventListener('dragstart', (e) => {
-			//console.log('dragstart');
-			const dragIndex = parseInt(e.target.id.replace('pad', ''));
-			e.dataTransfer.setData('text/plain', dragIndex);
+			e.dataTransfer.setData('id', e.target.id);
 		});
 
 		b1.addEventListener('dragover', (e) => {
-			//console.log('dragover');
 			e.preventDefault();
 		});
 
 		b1.addEventListener('drop', (e) => {
-			//console.log('drop');
 			e.preventDefault();
 			e.stopPropagation();
-			const dropIndex = parseInt(e.target.id.replace('pad', ''));
-			const dragIndex = e.dataTransfer.getData('text/plain');
-			if(dragIndex != dropIndex){
-				this.swapSample(dragIndex, dropIndex);
+			const dropIndex = e.target.id;
+			const dragIndex = e.dataTransfer.getData('id');
+			const dropUrl = e.dataTransfer.getData('url');
+
+			// Si drag index commence par pad
+			if(dragIndex.startsWith('pad')){
+				if(dragIndex != dropIndex){
+					this.swapSample(dragIndex, dropIndex);
+				}
+			}
+			else if(dragIndex.startsWith('result')){
+				this.addSampleToPad(dragIndex, dropIndex, dropUrl);
 			}
 		});	
 		
 		b1.addEventListener('dragend', (e) => {
-			//console.log('dragend');
-			e.preventDefault();
-		});
-
-		b2.addEventListener('dragstart', (e) => {
-			//console.log('dragstart');
-			const dragIndex = parseInt(e.target.id.replace('pad', ''));
-			e.dataTransfer.setData('text/plain', dragIndex);
-		});
-
-		b2.addEventListener('dragover', (e) => {
-			//console.log('dragover');
-			e.preventDefault();
-		});
-
-		b2.addEventListener('drop', (e) => {
-			//console.log('drop');
-			e.preventDefault();
-			e.stopPropagation();
-			const dropIndex = parseInt(e.target.id.replace('pad', ''));
-			const dragIndex = e.dataTransfer.getData('text/plain');
-			if(dragIndex != dropIndex){
-				this.swapSample(dragIndex, dropIndex);
-			}
-		});	
-		
-		b2.addEventListener('dragend', (e) => {
-			//console.log('dragend');
 			e.preventDefault();
 		});
 	}
 
 	swapSample = (index1, index2) => {
+		// On enlève le 'pad' du début de l'index
+		index1 = index1.substring(3);
+		index2 = index2.substring(3);
+
 		const div1 = this.shadowRoot.querySelector('#p' + index1);
 		const div2 = this.shadowRoot.querySelector('#p' + index2);
 
@@ -948,6 +971,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		SamplerHTMLElement.URLs[index1] = SamplerHTMLElement.URLs[index2];
 		SamplerHTMLElement.URLs[index2] = tempURL;
 
+		// Echange les noms
+		const tempName = SamplerHTMLElement.name[index1];
+		SamplerHTMLElement.name[index1] = SamplerHTMLElement.name[index2]
+		SamplerHTMLElement.name[index2] = tempName;
+
 		// Echange les samplesPlayer
 		const tempPlayer = this.samplePlayers[index1];
 		this.samplePlayers[index1] = this.samplePlayers[index2];
@@ -958,6 +986,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.setButtonDefaultText(index1);
 		}
 		else {
+			// Récupère le innerHTML du bouton
 			this.setPad(index1);
 		}
 
@@ -970,13 +999,60 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 
 		// On remet les listeners
-		this.setDragAndDropAfterDrop(index1, index2);
-
-		// console.log(div1);
-		// console.log(div2);
+		this.setDragAndDropAfterDrop(index1);
+		this.setDragAndDropAfterDrop(index2);
 	}
 
-	setResultSound = (index, name) => {
+	addSampleToPad = (index1, index2, url) => {
+		// On enlève le 'result' et le 'pad' du début de l'index
+		index1 = index1.substring(6);
+		index2 = index2.substring(3);
+
+		const div1 = this.shadowRoot.querySelector('#resultExplorer' + index1);
+		const div2 = this.shadowRoot.querySelector('#p' + index2);
+
+		// On supprime le button delete si il existe
+		if (div2.querySelector('.deleteSample')) {
+			div2.querySelector('.deleteSample').remove();
+		}
+
+		// On met le div1 dans le div2
+		div2.innerHTML = div1.innerHTML;
+
+		// On remet les classes correctes
+		const button = div2.querySelector('.resultButton');
+		const progress = div2.querySelector('.progressExplorer');
+		button.classList.remove('resultButton');
+		button.classList.add('padButton');
+		progress.classList.remove('progressExplorer');
+		progress.classList.add('padProgress');
+
+		// On remet les id corrects
+		button.id = 'pad' + index2;
+		progress.id = 'progress' + index2;
+
+		// On supprime tout les listeners en cloneant le bouton et en le remplaçant
+		const newButton = button.cloneNode(true);
+		button.parentNode.replaceChild(newButton, button);
+
+		// On remet les URLs
+		SamplerHTMLElement.URLs[index2] = url;
+
+		// On remet les noms
+		SamplerHTMLElement.name[index2] = button.innerHTML;
+
+		// On remet les samplesPlayer
+		this.samplePlayers[index2] = this.explorerSamplePlayers[index1];
+
+		// On configure le bouton
+		this.setPad(index2);
+
+		// On remet les listeners
+		this.setDragAndDropAfterDrop(index2);
+	}
+
+
+	setResultSound = (index, name, url) => {
 		// Créé un div resultExplorer pour chaque son
 		const div = document.createElement('div');
 		div.classList.add('resultExplorer');
@@ -991,6 +1067,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.addEventListener('click', (e) => {
 			this.explorerSamplePlayers[index].play();
 		});
+		// Ajoute l'attribut draggable
+		b.setAttribute('draggable', 'true');
+		b.addEventListener('dragstart', (e) => {
+			e.dataTransfer.setData('id', e.target.id);
+			e.dataTransfer.setData('url', url);
+		});
+
+		b.addEventListener('dragover', (e) => {
+			e.preventDefault();
+		});
+
+		b.addEventListener('dragend', (e) => {
+			e.preventDefault();
+		});
+
 		// Ajoute le bouton à la div
 		this.shadowRoot.querySelector('#resultExplorer' + index).appendChild(b);
 
@@ -1006,15 +1097,40 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	setPad(index) {
 		const b = this.shadowRoot.querySelector('#pad' + index);
+		const preset = this.shadowRoot.querySelector('#selectPreset').value;
+		
 		// Si dans l'url à l'index il y a un '/' et un '.' on split le nom du fichier
 		// sinon on affiche l'url
-		// console.log("URL name = " + SamplerHTMLElement.URLs[index]);
-		if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
-			b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+		// Si l'url n'est pas un fichier local
+
+		// if (SamplerHTMLElement.URLs[index].includes('http')) {
+		// 	b.innerHTML = SamplerHTMLElement.name[index];
+		// }
+		// else if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
+		// 	SamplerHTMLElement.name[index] = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+		// 	b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+		// }
+		// else {
+		// 	b.innerHTML = SamplerHTMLElement.URLs[index];
+		// }
+
+		// Si le nom du sample est enregistré dans le localStorage, on l'affiche
+		if (localStorage.getItem(preset)) {
+			const presetObject = JSON.parse(localStorage.getItem(preset));
+			if (presetObject[index]) {
+				b.innerHTML = presetObject[index].name;
+			}
 		}
+		// Sinon, si le nom est enregistré dans le tableau, on l'affiche
+		else if (SamplerHTMLElement.name[index]) {
+			b.innerHTML = SamplerHTMLElement.name[index];
+		}
+		// Sinon, on affiche l'url en enlevant le chemin et l'extension
 		else {
-			b.innerHTML = SamplerHTMLElement.URLs[index];
+			SamplerHTMLElement.name[index] = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+			b.innerHTML = SamplerHTMLElement.name[index];
 		}
+
 
 		b.classList.add('set');
 
@@ -1031,15 +1147,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		b.onclick = (e) => {
 			// passe le bouton en active, supprie le active des autres padbutton
-			// console.log("On dessine et on joue son " + index)
 			// display name of the sound inside the event.target element
 			this.player = this.samplePlayers[index];
 			// set effects knobs to current values
 			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
-
-			//console.log(this.player.effects);
 
 			this.player.drawWaveform();
 
@@ -1048,7 +1161,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
 			this.player.play();
-			//console.log(this.player);
 
 			this.b = e.target;
 
@@ -1098,6 +1210,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.innerHTML = '';
 		b.classList.remove('set');
 		b.classList.remove('selected');
+		b.classList.remove('active');
 
 		// Remet le texte par défaut
 		this.setButtonDefaultText(index);
@@ -1129,6 +1242,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 				// On remet le texte par défaut (touche clavier)
 				this.setAllButtonDefaultText();
 				b.classList.remove('set');
+				b.classList.remove('selected');
+				b.classList.remove('active');
 				// On supprime les listeners
 				b.onclick = null;
 			}
@@ -1150,7 +1265,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 		// Si il n'y a pas de localStorage égale à presetValue, on charge les sons par défaut
 		if (!localStorage.getItem(presetValue)) {
-			//console.log(SamplerHTMLElement.URLs);
 			// on charge les sons par défaut
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
@@ -1175,7 +1289,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On récupère le preset à charger
 			const presetToLoad = JSON.parse(localStorage.getItem(presetValue));
 
-			//console.log(SamplerHTMLElement.URLs);
 			// on charge les sons du preset
 			let bl = new BufferLoader(this.plugin.audioContext, SamplerHTMLElement.URLs, this.shadowRoot, (bufferList) => {
 				// on a chargé les sons, on stocke sous forme de tableau
@@ -1214,7 +1327,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
-				//console.log("factoryPreset1");
 			}
 			else {
 				// Pour chaque index du preset, on récupère les urls
@@ -1229,13 +1341,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				//console.log("factoryPreset1 from localStorage");
 			}
 		} else if (preset == "factoryPreset2") {
 			if (localStorage.getItem(preset) === null) {
 				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
 				SamplerHTMLElement.URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
-				//console.log("factoryPreset2");
 			}
 			else {
 				// Pour chaque index du preset, on récupère les urls et on les stocke dans un nouveau tableau
@@ -1250,11 +1360,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				//console.log("factoryPreset2 from localStorage");
 			}
 		}
 		else {
-			// console.log(preset + " = " + localStorage.getItem(preset));
 
 			if (localStorage.getItem(preset) != null) {
 				// Pour chaque index du preset, on récupère les urls et on les stocke dans un nouveau tableau
@@ -1269,11 +1377,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 					}
 				});
 				SamplerHTMLElement.URLs = newURLs;
-				//console.log("customPreset from localStorage");
-			}
-			else {
-				// Si il n'y a pas de preset sauvegardé, on charge les urls par défaut
-				//console.log("Error loadPresetUrls");
 			}
 		}
 
@@ -1282,12 +1385,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	// Fonction qui permet de changer de preset
 	changePreset = (presetName) => {
+
+		SamplerHTMLElement.name = [];
+		
 		// On récupère le preset
 		const preset = this.shadowRoot.querySelector('#selectPreset');
 
 		// On change la valeur du select
 		preset.value = presetName;
-		// console.log("Change preset = " + presetName);
 
 		// On récupère les urls du preset
 		const presetValue = this.loadPresetUrls();
@@ -1307,6 +1412,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			const b = this.shadowRoot.querySelector('#pad' + i);
 			// On remet le texte par défaut (touche clavier)
 			b.classList.remove('set');
+			b.classList.remove('selected');
+			b.classList.remove('active');
 			// On supprime les listeners
 			b.onclick = null;
 		}
@@ -1382,6 +1489,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 						presetToSave[index] = {
 							url: SamplerHTMLElement.URLs[index],
 
+							name: SamplerHTMLElement.name[index],
+
 							// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
@@ -1400,8 +1509,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.createPresetOptions();
 				this.changePreset(presetName);
 				this.displayPresetButtons();
-
-				console.log(localStorage);
 			}
 		}
 	}
@@ -1420,6 +1527,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 				if (samplePlayer !== null && samplePlayer !== undefined) {
 					presetToSave[index] = {
 						url: SamplerHTMLElement.URLs[index],
+						
+						name : SamplerHTMLElement.name[index],
 
 						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
@@ -1439,10 +1548,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.createPresetOptions();
 			this.changePreset(preset);
 			this.displayPresetButtons();
-
-			console.log(localStorage);
-			// let presetToLoad = JSON.parse(localStorage.getItem(preset));
-			// console.log(presetToLoad);
 		}
 	}
 
@@ -1467,8 +1572,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.changePreset("factoryPreset1");
 			}
 			this.displayPresetButtons();
-
-			console.log(localStorage);
 		}
 	}
 
@@ -1569,7 +1672,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	setKeyboardPress() {
 		document.onkeydown = (e) => {
-			console.log(e.key);
 			switch (e.key) {
 				case '1':
 				case '&':
@@ -1639,7 +1741,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		};
 
 		document.onkeyup = (e) => {
-			// console.log("KeyUp = " + e.key);
 			switch (e.key) {
 				case '1':
 				case '&':
@@ -1728,7 +1829,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	// with the plugin. Will appear in the DOM if
 	// the plugin is visible
 	static is() {
-		return 'wasabi-quadrafuzz-without-builder';
+		return 'sampler-html-element-without-builder';
 	}
 }
 
