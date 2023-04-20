@@ -163,7 +163,7 @@ let style = `
 .padbutton {
     width: 66.25px;
     height: 66.25px;
-    border: none;
+    border: 1px solid black;
     background-color: #ccc;
     color: black;
     cursor: pointer;
@@ -189,14 +189,17 @@ let style = `
 }
 
 .set {
-    background-color: lightgreen;
+	border: 1px solid green;
+	background-color: lightgreen;
 }
 
 .active {
-    background-color: red;
+	border: 1px solid darkred;
+	background-color: red;
 }
 
 .selected {
+	border: 1px solid darkred;
 	box-shadow: 2px 2px 2px red, -2px -2px 2px red, 2px -2px 2px red, -2px 2px 2px red;
 }
 
@@ -236,8 +239,48 @@ let style = `
 	align-items: center;
 }
 
+#freesoundAPI {
+	display: flex;
+	width: 280px;
+	height: 15px;
+	font-size: 10px;
+	margin-bottom: 5px;
+    justify-content: center;
+	align-items: center;
+}
+
+#apiKey {
+	width: 170px;
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+	& option {
+		font-size: 10px;
+	}
+	-webkit-text-security: disc; /* pour les navigateurs basés sur WebKit */
+	-moz-text-security: disc; /* pour les navigateurs basés sur Mozilla */
+	text-security: disc; /* pour les autres navigateurs */
+}
+
+#apiKeyButton {
+	height: 15px;
+	width: 28px;
+	font-size: 10px;
+	padding: 0px;
+	margin-right: 5px;
+	justify-content: center;
+	align-items: center;
+}
+
+#apiKeyButton.saved {
+	border: 1px solid green;
+	border-radius: 2px;
+	background-color: lightgreen;
+}
+
 #search {
-	width: 100px;
+	width: 90px;
 	height: 15px;
 	font-size: 10px;
 	padding: 0px;
@@ -248,8 +291,8 @@ let style = `
 }
 
 #searchButton {
+	width: 60px;
 	height: 15px;
-	width: 58px;
 	font-size: 10px;
 	padding: 0px;
 	margin-right: 5px;
@@ -259,26 +302,22 @@ let style = `
 }
 
 .error {
+	border: 1px solid darkred;
+	border-radius: 2px;
 	background-color: red;
 }
 
-#nbResults {
+#timeRange {
+	width: 50px;
 	height: 15px;
 	font-size: 10px;
 	padding: 0px;
 	margin-right: 5px;
 }
 
-#timeRange {
-	height: 15px;
-	font-size: 10px;
-	padding: 0px;
-	margin: 0px;
-}
-
 #results {
 	width: 280px;
-	height: 135px;
+	height: 115px;
 	margin-bottom: 10px;
 	display: inline-block;
 	overflow-y: scroll;
@@ -287,7 +326,29 @@ let style = `
 	&::-webkit-scrollbar { /* Chrome, Safari, Opera */
 		display: none;
 	}
+	border-radius: 10px;
 }
+
+#results.error {
+	border: 1px solid darkred;
+	background-color: rgba(255, 0, 0, 0.5);
+	color: white;
+	text-shadow: 0px 0px 1px black;
+	font-size: 12px;
+	text-align: center;
+	justify-content: center;
+	align-items: center;
+	display: flex;
+}
+
+#nextPage, #previousPage {
+	width: 25px;
+	height: 15px;
+	font-size: 10px;
+	padding: 0px;
+	margin: 0px;
+}
+
 
 .resultExplorer {
 	display: inline-block;
@@ -295,6 +356,7 @@ let style = `
 	height: 33px;
 	margin-right: 1.5px;
 	margin-left: 1.5px;
+	margin-bottom: 5px;
 }
 
 .resultButton {
@@ -308,7 +370,7 @@ let style = `
 	justify-content: center;
 	align-items: center;
 	border-radius: 10px;
-    border: none;
+    border: 1px solid black;
     background-color: #ccc;
     color: black;
     cursor: pointer;
@@ -316,21 +378,30 @@ let style = `
 	position: relative;
 }
 
-button {
+button, select, input {
 	&:focus {
 		outline: none;
 	}
 }
 
+option {
+	text-align: center;
+	overflow: hidden;
+
+}
+
 .resultButton.set {
+	border: 1px solid green;
 	background-color: lightgreen;
 }
 
 .resultButton.active {
 	background-color: red;
+	border: 1px solid darkred;
 }
 
 .resultButton.selected {
+	border: 1px solid darkred;
 	box-shadow: 1px 1px 1px red, -1px -1px 1px red, 1px -1px 1px red, -1px 1px 1px red;
 }
 
@@ -400,6 +471,7 @@ button {
 
 .choose {
 	background-color: orange;
+	border: 1px solid red;
 }
 
 `;
@@ -518,11 +590,16 @@ let template = `
 			</div>
 
 			<div id="explorer">
+				<div id="freesoundAPI">
+					<input type="text" id="apiKey" name="apiKey" placeholder="Enter your freesound API key">
+					<button id="apiKeyButton">Save</button>
+				</div>
 				<div id="research">
 					<input type="text" id="search" name="search" placeholder="Freesound">
 					<button id="searchButton">Search</button>
-					<select id="nbResults"></select>
 					<select id="timeRange"></select>
+					<button id="previousPage"><<</button>
+					<button id="nextPage">>></button>
 				</div>
 			
 				<div id="results">
@@ -560,6 +637,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.plugin = plugin;
 
 		this.setKnobs();
+
+		// apiKey BUFFA :
+		//this.apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
+		// apiKey BOUCLIER :
+		//this.apiKey = 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg';
+
+		this.apiKey = '';
+
+		this.apiUrl = 'https://freesound.org/apiv2';
 		
 
 		this.samplePlayers = [];
@@ -603,6 +689,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// Ajoute les listeners sur l'explorer
 		this.setExplorer();
+
+		// Ajoute les listeners sur l'input de l'API key
+		this.setApiKey();
 
 		// Ajoute le drag and drop
 		this.setAllDragAndDrop();
@@ -742,17 +831,52 @@ export default class SamplerHTMLElement extends HTMLElement {
 		});
 	}
 
+	setApiKey() {
+		const apiKeyInput = this.shadowRoot.querySelector('#apiKey');
+		const save = this.shadowRoot.querySelector('#apiKeyButton');
+
+		// Récupère l'API key dans le localStorage
+		if (localStorage.getItem('apiKey') != null) {
+			this.apiKey = localStorage.getItem('apiKey');
+			apiKeyInput.value = this.apiKey;
+			save.classList.add('saved');
+		}
+
+		apiKeyInput.addEventListener('focus', (e) => {
+			save.classList.remove('saved');
+		});
+
+		// Appuie sur le bouton de sauvegarde lorsque l'on 'Enter' dans l'input
+		apiKeyInput.addEventListener('keyup', (e) => {
+			if (e.keyCode === 13) {
+				save.click();
+				save.classList.add('saved');
+				apiKeyInput.blur();
+			}
+		});
+
+
+		save.addEventListener('click', (e) => {
+			this.apiKey = apiKeyInput.value;
+
+			// Ajoute l'API key dans le localStorage
+			localStorage.setItem('apiKey', this.apiKey);
+
+			save.classList.add('saved');
+		});
+	}
+		
+
 	setExplorer() {
 		const search = this.shadowRoot.querySelector('#search');
 		const searchButton = this.shadowRoot.querySelector('#searchButton');
-		const nbResults = this.shadowRoot.querySelector('#nbResults');
 		const time = this.shadowRoot.querySelector('#timeRange');
 		const results = this.shadowRoot.querySelector('#results');
+		const next = this.shadowRoot.querySelector('#nextPage');
+		const previous = this.shadowRoot.querySelector('#previousPage');
 
-		// apiKey : Michel : 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo' 
-		// apiKey : Lucas : 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg'
-		const apiUrl = 'https://freesound.org/apiv2';
-		const apiKey = 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg';
+		next.disabled = true;
+		previous.disabled = true;
 
 		// Désactive les document.onkeyup et document.onkeydown
 		search.addEventListener('focus', (e) => {
@@ -764,22 +888,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.setKeyboardPress();
 		});
 
-		nbResults.innerHTML = 9;
-		nbResults.value = 9;
-
-		// Ajoute l'option 9
-		let option = document.createElement('option');
-		option.value = 9;
-		option.innerHTML = 9 + ' results';
-		nbResults.appendChild(option);
-
-		// Ajoute les options de nombre de résultats allant de 15 à 60
-		for (let i = 15; i <= 60; i += 15) {
-			option = document.createElement('option');
-			option.value = i;
-			option.innerHTML = i + ' results';
-			nbResults.appendChild(option);
-		}
+		let option = "";
+		let numPage = 1;
 
 		time.innerHTML = 5;
 		time.value = 5;
@@ -806,25 +916,44 @@ export default class SamplerHTMLElement extends HTMLElement {
 		option.innerHTML = 'all';
 		time.appendChild(option);
 
+		// Ajoute les listeners sur le next
+		next.addEventListener('click', (e) => {
+			numPage++;
+			searchButton.click();
+		});
+
+		// Ajoute les listeners sur le previous
+		previous.addEventListener('click', (e) => {
+			if(numPage > 1) {
+				numPage--;
+				searchButton.click();
+			}
+		});
+
+
 
 		searchButton.addEventListener('click', (e) => {
+
+			next.disabled = true;
+			previous.disabled = true;
 			
 			searchButton.disabled = true;
 			searchButton.classList.remove('error');
 			searchButton.innerHTML = 'Searching...';
 
+			results.classList.remove('error');
 			results.innerHTML = '';
 
 			this.stopAllSoundsExplorer();
 			this.explorerSamplePlayers = [];
 			let arrayOfSoundObjectURLs = [];
 
-			this.getSounds(search.value).then((arrayOfSoundIds) => {
+			this.getSounds(search.value, numPage).then((arrayOfSoundIds) => {
 
 				arrayOfSoundIds.map((soundObject, index) => {
 					const id = soundObject[0];
 					const name = soundObject[1];
-					const urlOfSoundObject = `${apiUrl}/sounds/${id}/?token=${apiKey}`;
+					const urlOfSoundObject = `${this.apiUrl}/sounds/${id}/?token=${this.apiKey}`;
 
 					arrayOfSoundObjectURLs.push(urlOfSoundObject);
 				});
@@ -863,42 +992,35 @@ export default class SamplerHTMLElement extends HTMLElement {
 					bl.loadExplorer();
 
 					if (!searchButton.classList.contains('error')) {
-						searchButton.disabled = false;
 						searchButton.textContent = 'Search';
 					}
 					else {
-						searchButton.disabled = false;
 						searchButton.textContent = 'Error';
 					}
-				})
-				.catch((error) => {
-					console.log(error);
-					searchButton.classList.add('error');
+					next.disabled = false;
+					if(numPage > 1) {
+						previous.disabled = false;
+					}
 					searchButton.disabled = false;
-					searchButton.textContent = 'Error';
 				});
 			});
 		});	
 	}
 
 
-	getSounds(queryText) {
-		// apiKey : Michel : 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo' 
-		// apiKey : Lucas : 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg'
-		const apiUrl = 'https://freesound.org/apiv2';
-		const apiKey = 'oDL2Gdd0IksB30fuYIPsb3FCAjkhgNb2Vyw2bENg';
+	getSounds(queryText, nbPage) {
 
-		let nbResults = this.shadowRoot.querySelector('#nbResults').value;
 		let time = this.shadowRoot.querySelector('#timeRange').value;
 		const searchButton = this.shadowRoot.querySelector('#searchButton');
+		const results = this.shadowRoot.querySelector('#results');
 
 		let url = '';
 
 		if (time === 'unlimited') {
-			url = `${apiUrl}/search/text/?query=${queryText}&token=${apiKey}&page_size=${nbResults}`;
+			url = `${this.apiUrl}/search/text/?query=${queryText}&token=${this.apiKey}&page_size=9&page=${nbPage}`;
 		}
 		else {
-			url = `${apiUrl}/search/text/?query=${queryText}&token=${apiKey}&page_size=${nbResults}&filter=duration:[0.0 TO ${time}.0]`;
+			url = `${this.apiUrl}/search/text/?query=${queryText}&token=${this.apiKey}&page_size=9&page=${nbPage}&filter=duration:[0.0 TO ${time}.0]`;
 		}
 
 		const xhr = new XMLHttpRequest();
@@ -912,23 +1034,49 @@ export default class SamplerHTMLElement extends HTMLElement {
 						const arrayOfSoundIdsAndNames = xhr.response.results.map(sound => [sound.id, sound.name]);
 						resolve(arrayOfSoundIdsAndNames);
 					} 
-					else if (xhr.status === 404) {
-						reject(new Error('Sounds not found : ' + xhr.response.detail));
-						if(!searchButton.contains('error')){
+					else if (xhr.status === 401) {
+						if(!searchButton.classList.contains('error')){
 							searchButton.classList.add('error');
+							searchButton.textContent = 'Error';
 						}
+						searchButton.disabled = false;
+
+						results.classList.add('error');
+						results.innerHTML = 'Unauthorized : ' + xhr.response.detail + '<br><br>Please check your API key.';
+						reject(new Error('Unauthorized : ' + xhr.response.detail));
+					}
+					else if (xhr.status === 404) {
+						if(!searchButton.classList.contains('error')){
+							searchButton.classList.add('error');
+							searchButton.textContent = 'Error';
+						}
+						searchButton.disabled = false;
+
+						results.classList.add('error');
+						results.innerHTML = 'Sounds not found : ' + xhr.response.detail;
+						reject(new Error('Sounds not found : ' + xhr.response.detail));
 					}
 					else if (xhr.status === 429) {
-						reject(new Error('Too many requests : ' + xhr.response.detail));
-						if(!searchButton.contains('error')){
+						if(!searchButton.classList.contains('error')){
 							searchButton.classList.add('error');
+							searchButton.textContent = 'Error';
 						}
+						searchButton.disabled = false;
+
+						results.classList.add('error');
+						results.innerHTML = 'Too many requests : ' + xhr.response.detail;
+						reject(new Error('Too many requests : ' + xhr.response.detail));
 					}
 					else {
-						reject(new Error('Failed to get sounds : ' + xhr.response.detail));
-						if(!searchButton.contains('error')){
+						if(!searchButton.classList.contains('error')){
 							searchButton.classList.add('error');
+							searchButton.textContent = 'Error';
 						}
+						searchButton.disabled = false;
+
+						results.classList.add('error');
+						results.innerHTML = 'Failed to get sounds : ' + xhr.response.detail;
+						reject(new Error('Failed to get sounds : ' + xhr.response.detail));
 					}
 				}
 			};
@@ -1579,8 +1727,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 
 	createPresetOptions = () => {
-		// On récupère les presets sauvegardés
-		let presets = Object.keys(localStorage);
+		// On récupère les presets sauvegardés sauf apiKey
+		let presets = Object.keys(localStorage).filter((key) => key !== "apiKey");
 
 		// On récupère le select
 		const selectPreset = this.shadowRoot.querySelector('#selectPreset');
