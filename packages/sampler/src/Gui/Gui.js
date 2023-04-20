@@ -49,6 +49,7 @@ let style = `
     justify-content: left;
     border: 2px solid;
 
+	margin: 20px;
     width: 600px;
     height: 350px;
 	background-color: rgba(0, 0, 0, 0.5);
@@ -213,6 +214,7 @@ let style = `
 	height: 15px;
 	font-size: 10px;
 	border: none;
+	border-radius: 10px;
 }
 
 #explorer {
@@ -1115,7 +1117,19 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 
+	stopAllSounds = () => {
+		for (let i = 0; i < this.samplePlayers.length; i++) {
+			if(this.samplePlayers[i] != null){
+				this.samplePlayers[i].stop();
+			}
+		}
 
+		for (let i = 0; i < this.explorerSamplePlayers.length; i++) {
+			if(this.explorerSamplePlayers[i] != null){
+				this.explorerSamplePlayers[i].stop();
+			}
+		}
+	}
 
 	setResultSound = (index, name, url) => {
 
@@ -1132,7 +1146,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.innerHTML = name;
 
 		b.addEventListener('click', (e) => {
-			this.explorerSamplePlayers[index].play();
+			this.stopAllSounds();
+			this.player = this.explorerSamplePlayers[index];
+			// Affiche le nom du son dans le div sans le <button>
+			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
+			this.player.drawWaveform();
+			this.player.play();
 		});
 
 		b.addEventListener('dragstart', (e) => {
@@ -1212,13 +1231,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			// Affiche le nom du son dans le div sans le <button>
 			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
+			this.player.drawWaveform();
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
+			this.player.stop();
 			this.player.play();
 
 			//this.player.playReverse();
-
-			this.player.drawWaveform();
 
 			this.b = e.target;
 
@@ -1658,17 +1677,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	displayPresetButtons = () => {
 		const preset = this.shadowRoot.querySelector('#selectPreset').value;
-
+	
 		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
-
-		// // Si le localStorage ne contient pas le preset, on cache le bouton "deletePreset"
-		// if (localStorage.getItem(preset) === null) {
-		// 	deletePreset.style.display = "none";
-		// }
-		// else {
-		// 	deletePreset.style.display = "inline-block";
-		// }
-
+	
 		if (preset === "factoryPreset1" || preset === "factoryPreset2") {
 			deletePreset.innerHTML = "Reset preset";
 		}

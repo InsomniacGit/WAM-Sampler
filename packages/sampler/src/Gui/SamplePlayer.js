@@ -56,6 +56,15 @@ export default class SamplePlayer {
         this.startTime = this.ctx.currentTime;
     }
 
+    stop() {
+        if (this.bufferSource) {
+          this.bufferSource.stop();
+          this.bufferSource.disconnect();
+          this.bufferSource = null;
+          this.startTime = 0;
+        }
+    }
+
     reverse(buffer) {
         let newBuffer = this.ctx.createBuffer(
             buffer.numberOfChannels,
