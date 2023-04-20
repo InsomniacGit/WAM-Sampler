@@ -221,7 +221,7 @@ let style = `
 	display: inline-block;
 	width: 280px;
 	height: 160px;
-	padding-bottom: 10px;
+	margin-bottom: 10px;
 	color: white;
 	text-shadow: 0px 0px 1px black;
 }
@@ -279,7 +279,7 @@ let style = `
 #results {
 	width: 280px;
 	height: 135px;
-	padding-bottom: 10px;
+	margin-bottom: 10px;
 	display: inline-block;
 	overflow-y: scroll;
 	-ms-overflow-style: none;  /* IE and Edge */
@@ -293,7 +293,6 @@ let style = `
 	display: inline-block;
 	width: 90px;
 	height: 33px;
-	margin-bottom: 3px;
 	margin-right: 1.5px;
 	margin-left: 1.5px;
 }
@@ -301,6 +300,7 @@ let style = `
 .resultButton {
 	width: 90px;
 	height: 24px;
+	margin-top: 3px;
 	font-size: 10px;
 	white-space: normal;
 	overflow: hidden;
@@ -316,8 +316,22 @@ let style = `
 	position: relative;
 }
 
+button {
+	&:focus {
+		outline: none;
+	}
+}
+
 .resultButton.set {
 	background-color: lightgreen;
+}
+
+.resultButton.active {
+	background-color: red;
+}
+
+.resultButton.selected {
+	box-shadow: 1px 1px 1px red, -1px -1px 1px red, 1px -1px 1px red, -1px 1px 1px red;
 }
 
 .progressExplorer {
@@ -800,6 +814,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			searchButton.innerHTML = 'Searching...';
 
 			results.innerHTML = '';
+
+			this.stopAllSoundsExplorer();
 			this.explorerSamplePlayers = [];
 			let arrayOfSoundObjectURLs = [];
 
@@ -1117,13 +1133,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 
-	stopAllSounds = () => {
+	stopAllSoundsPads = () => {
 		for (let i = 0; i < this.samplePlayers.length; i++) {
 			if(this.samplePlayers[i] != null){
 				this.samplePlayers[i].stop();
 			}
 		}
+	}
 
+	stopAllSoundsExplorer = () => {
 		for (let i = 0; i < this.explorerSamplePlayers.length; i++) {
 			if(this.explorerSamplePlayers[i] != null){
 				this.explorerSamplePlayers[i].stop();
@@ -1131,8 +1149,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 	}
 
-	setResultSound = (index, name, url) => {
 
+	setResultSound = (index, name, url) => {
 		// Créé un div resultExplorer pour chaque son
 		const div = document.createElement('div');
 		div.classList.add('resultExplorer');
@@ -1146,12 +1164,38 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.innerHTML = name;
 
 		b.addEventListener('click', (e) => {
-			this.stopAllSounds();
-			this.player = this.explorerSamplePlayers[index];
-			// Affiche le nom du son dans le div sans le <button>
-			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
-			this.player.drawWaveform();
-			this.player.play();
+			// Si le son est chargé
+			if (this.explorerSamplePlayers[index] != null) {
+				this.stopAllSoundsPads();
+				this.stopAllSoundsExplorer();
+
+				this.player = this.explorerSamplePlayers[index];
+				// Affiche le nom du son dans le div sans le <button>
+				this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
+				this.player.drawWaveform();
+				this.player.play();
+
+
+				b.classList.add('active');
+				setTimeout(() => {
+					b.classList.remove('active');
+				}, 100);
+
+				// On enleve la class .selected de tous les pads
+				const buttons = this.shadowRoot.querySelectorAll('.padButton');
+				buttons.forEach((button) => {
+					button.classList.remove('selected');
+				});
+
+				// On enleve la class .selected de tous les button de l'explorer
+				const buttonsExplorer = this.shadowRoot.querySelectorAll('.resultButton');
+				buttonsExplorer.forEach((button) => {
+					button.classList.remove('selected');
+				});
+
+				// On ajoute la class .selected au bouton cliqué
+				b.classList.add('selected');
+			}
 		});
 
 		b.addEventListener('dragstart', (e) => {
@@ -1252,6 +1296,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 				button.classList.remove('selected');
 			});
 
+			// On enleve la class .selected de tous les button de l'explorer
+			const buttonsExplorer = this.shadowRoot.querySelectorAll('.resultButton');
+			buttonsExplorer.forEach((button) => {
+				button.classList.remove('selected');
+			});
+
 			// On ajoute la class .selected au bouton cliqué
 			b.classList.add('selected');
 		};
@@ -1271,6 +1321,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// Suprime le click listener
 		b.onclick = null;
+
+		// Stop le samplePlayer
+		this.samplePlayers[index].stop();
 
 		// Si b est le bouton actif, on clear le canvas
 		if (b.classList.contains('selected')) {
@@ -1306,6 +1359,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			// On récupère les urls du preset
 			const presetValue = this.loadPresetUrls();
+
+			// Arreter tout les sons
+			this.stopAllSoundsPads();
+			this.stopAllSoundsExplorer();
 
 			// On vide les samplePlayers
 			this.samplePlayers = [];
@@ -1480,6 +1537,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On récupère les urls du preset
 		const presetValue = this.loadPresetUrls();
+
+		// Arreter tout les sons
+		this.stopAllSoundsPads();
+		this.stopAllSoundsExplorer();
 
 		// On vide les samplePlayers
 		this.samplePlayers = [];

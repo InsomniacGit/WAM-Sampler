@@ -122,25 +122,36 @@ export default class SamplePlayer {
     }
 
     drawTimes() {
-        if (!this.bufferSource) return;
+
         let ctx = this.ctxCanvasOverlay;
+        let currentText = "";
 
-        ctx.save();
+        if(!this.bufferSource && !this.totalTime) return;
+        else if (!this.bufferSource){
+            // draw in canvas currentTime in format seconds:miliseconds
+            currentText = "0:00";
+        }
+        else{
+            // compute length of the region being played
+            this.totalTime = this.bufferSource.buffer.duration;
 
-        // draw in canvas currentTime in format seconds:miliseconds
-        let elapsedTime = this.ctx.currentTime - this.startTime;
-        let elapsedTimeInPixels = this.secondsToPixel(elapsedTime, this.bufferSource.buffer.duration);
-        let currentTime = this.pixelToSeconds(elapsedTimeInPixels, this.bufferSource.buffer.duration);
-        let currentSeconds = Math.floor(currentTime);
-        let currentMiliseconds = Math.floor((currentTime - currentSeconds) * 100);
-        let currentText = currentSeconds + ":" + currentMiliseconds;
-        
-        // compute length of the region being played
+            // draw in canvas currentTime in format seconds:miliseconds
+            let elapsedTime = this.ctx.currentTime - this.startTime;
+            let elapsedTimeInPixels = this.secondsToPixel(elapsedTime, this.bufferSource.buffer.duration);
+            let currentTime = this.pixelToSeconds(elapsedTimeInPixels, this.bufferSource.buffer.duration);
+            let currentSeconds = Math.floor(currentTime);
+            let currentMiliseconds = Math.floor((currentTime - currentSeconds) * 100);
+            
+            currentText = currentSeconds + ":" + currentMiliseconds;
+        }
+
         const pixelLength = this.rightTrimBar.x - this.leftTrimBar.x;
-        const secondLength = this.pixelToSeconds(pixelLength, this.bufferSource.buffer.duration);
+        const secondLength = this.pixelToSeconds(pixelLength, this.totalTime);
         let seconds = Math.floor(secondLength);
         let miliseconds = Math.floor((secondLength - seconds) * 100);
+        
         // draw the times
+        ctx.save();
         let text = currentText + " / " + seconds + ":" + miliseconds;
         ctx.fillStyle = "white";
         ctx.font = "10px Arial";
