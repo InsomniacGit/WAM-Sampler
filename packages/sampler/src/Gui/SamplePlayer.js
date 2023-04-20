@@ -11,6 +11,7 @@ export default class SamplePlayer {
 
         // effects
         this.effects = new EffectStack(this.ctx);
+        this.reversed = false;
 
         
 
@@ -65,7 +66,7 @@ export default class SamplePlayer {
         }
     }
 
-    reverse(buffer) {
+    reverseSound(buffer) {
         let newBuffer = this.ctx.createBuffer(
             buffer.numberOfChannels,
             buffer.length,
@@ -149,7 +150,7 @@ export default class SamplePlayer {
         const secondLength = this.pixelToSeconds(pixelLength, this.totalTime);
         let seconds = Math.floor(secondLength);
         let miliseconds = Math.floor((secondLength - seconds) * 100);
-        
+
         // draw the times
         ctx.save();
         let text = currentText + " / " + seconds + ":" + miliseconds;

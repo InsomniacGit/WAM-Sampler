@@ -688,11 +688,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
 			if(this.player == undefined) return;
 
-			const reverseSoundBuffer = this.player.reverse(this.player.decodedSound);
-			
+			const reverseSoundBuffer = this.player.reverseSound(this.player.decodedSound);
+			this.player.reversed = !this.player.reversed;
+		
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
-
 		});
 	}
 
@@ -1271,7 +1271,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
 
-			
 
 			// Affiche le nom du son dans le div sans le <button>
 			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
@@ -1436,6 +1435,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 					if(decodedSound != undefined){
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
+						this.samplePlayers[index].reversed = presetToLoad[index].reversed;
+
 						// On récupère les leftTrim et rightTrim du preset
 						this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
 						this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
@@ -1446,6 +1447,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 						this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
 						SamplerHTMLElement.name[index] = presetToLoad[index].name;
+
+						// Reverse le son si il est inversé
+						if(this.samplePlayers[index].reversed){
+							this.samplePlayers[index].decodedSound = this.samplePlayers[index].reverseSound(this.samplePlayers[index].decodedSound);
+						}
 
 						this.setPad(index);
 						this.displayPresetButtons();
@@ -1635,6 +1641,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 							url: SamplerHTMLElement.URLs[index],
 							name: SamplerHTMLElement.name[index],
 
+							reversed: samplePlayer.reversed,
+
 							// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
@@ -1679,7 +1687,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 				if (samplePlayer !== null && samplePlayer !== undefined) {
 					presetToSave[index] = {
 						url: SamplerHTMLElement.URLs[index],
-						name : SamplerHTMLElement.name[index],
+						name: SamplerHTMLElement.name[index],
+
+						reversed: samplePlayer.reversed,
 
 						// Récupère les leftTrimBar.x et rightTrimBar.x de valeur entière
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
