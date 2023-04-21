@@ -279,6 +279,7 @@ let style = `
 	background-color: lightgreen;
 }
 
+
 #search {
 	width: 90px;
 	height: 15px;
@@ -361,7 +362,7 @@ let style = `
 
 .resultButton {
 	width: 90px;
-	height: 24px;
+	height: 26px;
 	margin-top: 3px;
 	font-size: 10px;
 	white-space: normal;
@@ -657,7 +658,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// MANDATORY for the GUI to observe the plugin state
 		this.plugin = plugin;
 
-		this.setKnobs();
 
 		// apiKey BUFFA :
 		//this.apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
@@ -708,6 +708,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// Ajoute les listeners sur les boutons de choix
 		this.setChoiceButtons();
+
+		// Ajoute les listeners sur les boutons d'effets
+		this.setKnobs();
 
 		// Ajoute les listeners sur l'explorer
 		this.setExplorer();
@@ -911,10 +914,20 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		apiKeyInput.addEventListener('focus', (e) => {
 			save.classList.remove('saved');
+
+			// Désactive les document.onkeyup et document.onkeydown
+			this.removeKeyboardPress();
+		});
+
+
+		// Ajoute les listeners sur le clavier
+		apiKeyInput.addEventListener('blur', (e) => {
+			this.setKeyboardPress();
 		});
 
 		// Appuie sur le bouton de sauvegarde lorsque l'on 'Enter' dans l'input
 		apiKeyInput.addEventListener('keyup', (e) => {
+			// Si on appuie sur 'Enter'
 			if (e.keyCode === 13) {
 				save.click();
 				save.classList.add('saved');
@@ -1344,6 +1357,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On configure le bouton
 		this.setPad(index2);
+
+		// On met à jour le player
+		this.player = this.samplePlayers[index2];
+		this.shadowRoot.querySelector('#soundName').innerHTML = button.innerHTML;
+		this.player.drawWaveform();
 
 		// On remet les listeners
 		this.setDragAndDropAfterDrop(index2);
