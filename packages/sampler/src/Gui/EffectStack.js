@@ -1,3 +1,5 @@
+import ADSRNode from "./adsrNode.js";
+
 export default class EffectStack {
     constructor(ctx) {
         // An effect stack is a subgraph with audio effects
@@ -11,6 +13,7 @@ export default class EffectStack {
         this.inputNode = this.ctx.createGain();
 
         this.volumeNode = this.ctx.createGain();
+
         this.panNode = this.ctx.createStereoPanner();
 
         //Filtres pour le réglage du Tone
@@ -24,16 +27,18 @@ export default class EffectStack {
         //Compresseur
         this.compressorNode = this.ctx.createDynamicsCompressor();
 
+        //Enveloppe ADSR
+        this.opts = {};
+
         this.setDefaultValues();
 
         // connect the nodes
         this.inputNode.connect(this.lowShelfNode);
-
         this.lowShelfNode.connect(this.highShelfNode);
         this.highShelfNode.connect(this.panNode);
         this.panNode.connect(this.volumeNode);
 
-        // connect tp output
+        // connect to output
         this.volumeNode.connect(this.outputNode);
     }
 
@@ -43,6 +48,28 @@ export default class EffectStack {
         this.tone = 0;
         this.lowShelfNode.frequency.value = 300;
         this.highShelfNode.frequency.value = 2000;
+
+        //ADSR
+        this.opts = {
+            attack: 0.1,
+            decay: 0.2,
+            sustain: 1,
+            release: 0.3,
+        };
+        this.attackValue = 0.2;
+        this.decayValue = 0.2;
+        this.sustainValue = 1;
+        //this.sustime = 5; //temps de maintien de la note
+        this.releaseValue = 0.3;
+    }
+
+    setParamsEnvValue(_opts){
+        this._opts.attack = parseFloat(this.attackValue);
+        this._opts.decay = parseFloat(this.decayValue);
+        this._opts.sustain = parseFloat(this.sustainValue);
+        this._opts.release = parseFloat(this.releaseValue);
+        this.envDowntime = this._opts.attack + this._opts.decay + this.sustime;
+        this.envDuration = this.envDowntime + this._opts.release;
     }
 
     get volumeGain() {

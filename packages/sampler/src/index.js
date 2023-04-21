@@ -56,7 +56,7 @@ export default class SamplerPlugin extends WebAudioModule {
 			// the curve of the waveshaper... so... we don't really want to automatize at a fast rate...
 			// I guess this is the case of a developer who is gonna do custom automation
 			volumeGain: {
-				defaultValue: 0.6,
+				defaultValue: 0.5,
 				minValue: 0,
 				maxValue: 1,
 				onChange: (value) => { samplerNode.volumeGain = value; },

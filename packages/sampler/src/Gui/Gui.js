@@ -425,7 +425,7 @@ option {
 }
 
 
-#knobs {
+#knobs, #ADSR {
 	display: grid;
 	justify-content: center;
 	justify-items: center;
@@ -607,14 +607,36 @@ let template = `
 			</div>
 
 			<div id="ADSR">
-				<h1>TODO</h1>
+				<div class="knob" id="adsrAttack">
+					<webaudio-knob  id="knobAttack" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.2" midilearn="1" tooltip="Attack %.2f"></webaudio-knob>
+					<label for="knobAttack">Attack</label>
+				</div>
+				<div class="knob" id="adsrDecay">
+					<webaudio-knob  id="knobDecay" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.2" midilearn="1" tooltip="Decay %.2f"></webaudio-knob>
+					<label for="knobDecay">Decay</label>
+				</div>
+				<div class="knob" id="adsrSustain">
+				<webaudio-knob  id="knobSustain" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Sustain %.2f"></webaudio-knob>
+				<label for="knobSustain">Sustain</label>
+				</div>
+				<div class="knob" id="adsrRelease">
+				<webaudio-knob  id="knobRelease" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.3" midilearn="1" tooltip="Release %.2f"></webaudio-knob>
+				<label for="knobRelease">Release</label>
+				</div>
+				<div>
+				<button id="envBtn">Enable</button>
+				</div>		
 			</div>
 		</div>
 	</div>
 </div>
 `;
 
-
+export class MIDI {
+	static NOTE_ON = 0x90;
+	static NOTE_OFF = 0x80;
+	static CC = 0xB0;
+}
 
 
 // The GUI is a WebComponent. Not mandatory but useful.
@@ -629,7 +651,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	constructor(plugin) {
 		super();
-
 		this.root = this.attachShadow({ mode: 'open' });
 		this.root.innerHTML = `<style>${style}</style>${template}`;
 
@@ -646,7 +667,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.apiKey = '';
 
 		this.apiUrl = 'https://freesound.org/apiv2';
-		
+
+		this.setupMidiListeners(this.plugin.audioNode);
 
 		this.samplePlayers = [];
 
@@ -751,38 +773,83 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.shadowRoot.querySelector('#knob1').addEventListener('input', (e) => {
 			//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
 
-			if(this.player == undefined) return;
+			if (this.player == undefined) return;
 
 			this.player.effects.volumeGain = parseFloat(e.target.value);
 		});
-		
+
 		this.shadowRoot.querySelector('#knob2').addEventListener('input', (e) => {
 			//this.plugin.audioNode.setParamsValues({ pan: e.target.value });
 
-			if(this.player == undefined) return;
+			if (this.player == undefined) return;
 
 			this.player.effects.pan = parseFloat(e.target.value);
 
 		});
-		
+
 		this.shadowRoot.querySelector('#knob3').addEventListener('input', (e) => {
 			//this.plugin.audioNode.setParamsValues({ tone: e.target.value });
 
-			if(this.player == undefined) return;
+			if (this.player == undefined) return;
 
 			this.player.effects.tone = parseFloat(e.target.value);
 		});
 
 		//button reverse
 		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
-			if(this.player == undefined) return;
+			if (this.player == undefined) return;
 
 			const reverseSoundBuffer = this.player.reverseSound(this.player.decodedSound);
 			this.player.reversed = !this.player.reversed;
-		
+
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
+			console.log(this.player.effects);
 		});
+
+		//envelope ADSR
+
+		//enable ADSR;
+		const envBtn = this.shadowRoot.querySelector('#envBtn');
+		envBtn.addEventListener('click', (e) => {
+			if (this.player == undefined) return;
+			if (!this.player.enableAdsr) {
+				envBtn.innerHTML = "Disable";
+				this.player.enableAdsr = true;
+				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
+			}
+			else {
+				envBtn.innerHTML = "Enable";
+				this.player.enableAdsr = false;
+				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
+			}
+		});
+
+		//attack
+		this.shadowRoot.querySelector("#knobAttack").addEventListener('input', (e) => {
+			if (this.player == undefined) return;
+			this.player.effects.attackValue = parseFloat(e.target.value);
+			//console.log("attack = " + this.player.effects.attackValue);
+		});
+
+		//decay
+		this.shadowRoot.querySelector("#knobDecay").addEventListener('input', (e) => {
+			if (this.player == undefined) return;
+			this.player.effects.decayValue = parseFloat(e.target.value);
+		});
+
+		//sustain
+		this.shadowRoot.querySelector("#knobSustain").addEventListener('input', (e) => {
+			if (this.player == undefined) return;
+			this.player.effects.sustainValue = parseFloat(e.target.value);
+		});
+
+		//release
+		this.shadowRoot.querySelector("#knobRelease").addEventListener('input', (e) => {
+			if (this.player == undefined) return;
+			this.player.effects.releaseValue = parseFloat(e.target.value);
+		});
+
 	}
 
 	setChoiceButtons() {
@@ -823,7 +890,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		ADSR.addEventListener('click', (e) => {
 			divKnob.style.display = 'none';
 			divExplorer.style.display = 'none';
-			divADSR.style.display = 'inline-block';
+			divADSR.style.display = 'grid';
 
 			knob.classList.remove('choose');
 			explorer.classList.remove('choose');
@@ -865,7 +932,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			save.classList.add('saved');
 		});
 	}
-		
+
 
 	setExplorer() {
 		const search = this.shadowRoot.querySelector('#search');
@@ -924,7 +991,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// Ajoute les listeners sur le previous
 		previous.addEventListener('click', (e) => {
-			if(numPage > 1) {
+			if (numPage > 1) {
 				numPage--;
 				searchButton.click();
 			}
@@ -936,7 +1003,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			next.disabled = true;
 			previous.disabled = true;
-			
+
 			searchButton.disabled = true;
 			searchButton.classList.remove('error');
 			searchButton.innerHTML = 'Searching...';
@@ -960,52 +1027,54 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 				// use Promise.all to get all the sound objects
 				Promise.all(arrayOfSoundObjectURLs.map(url => fetch(url)))
-				.then(responses => Promise.all(responses.map(res => res.json())))
-				.then(soundObjects => {
-					// use Promise.all to get all the sound previews as mp3 files
-					const arrayOfSoundPreviews = soundObjects.map(soundObject => soundObject.previews['preview-hq-mp3']);
+					.then(responses => Promise.all(responses.map(res => res.json())))
+					.then(soundObjects => {
+						// use Promise.all to get all the sound previews as mp3 files
+						const arrayOfSoundPreviews = soundObjects.map(soundObject => soundObject.previews['preview-hq-mp3']);
 
-					arrayOfSoundPreviews.forEach((soundPreview, index) => {
-						this.setResultSound(index, arrayOfSoundIds[index][1], arrayOfSoundPreviews[index]);
-					});
-
-					let bl = new BufferLoader(this.plugin.audioContext, arrayOfSoundPreviews, this.shadowRoot, (bufferList) => {
-						// on a chargé les sons, on stocke sous forme de tableau
-						this.decodedSounds = bufferList;
-
-						// Pour chaque son on créé un SamplePlayer
-						this.decodedSounds.forEach((decodedSound, index) => {
-
-							this.explorerSamplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-							
-							const b = this.shadowRoot.querySelector('#result' + index);
-
-							// Passes le button à .set
-							b.classList.add('set');
-							// Ajoute l'attribut draggable
-							b.setAttribute('draggable', 'true');
-	
-							window.requestAnimationFrame(this.handleAnimationFrame);
+						arrayOfSoundPreviews.forEach((soundPreview, index) => {
+							this.setResultSound(index, arrayOfSoundIds[index][1], arrayOfSoundPreviews[index]);
 						});
-					});
-		
-					bl.loadExplorer();
 
-					if (!searchButton.classList.contains('error')) {
-						searchButton.textContent = 'Search';
-					}
-					else {
-						searchButton.textContent = 'Error';
-					}
-					next.disabled = false;
-					if(numPage > 1) {
-						previous.disabled = false;
-					}
-					searchButton.disabled = false;
-				});
+						let bl = new BufferLoader(this.plugin.audioContext, arrayOfSoundPreviews, this.shadowRoot, (bufferList) => {
+							// on a chargé les sons, on stocke sous forme de tableau
+							this.decodedSounds = bufferList;
+
+							// Pour chaque son on créé un SamplePlayer
+							this.decodedSounds.forEach((decodedSound, index) => {
+
+								this.explorerSamplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
+
+								const b = this.shadowRoot.querySelector('#result' + index);
+
+								// Passes le button à .set
+								b.classList.add('set');
+								// Ajoute l'attribut draggable
+								b.setAttribute('draggable', 'true');
+
+								window.requestAnimationFrame(this.handleAnimationFrame);
+							});
+						});
+
+						bl.loadExplorer();
+
+						if (!searchButton.classList.contains('error')) {
+							searchButton.textContent = 'Search';
+						}
+						else {
+							searchButton.textContent = 'Error';
+						}
+						next.disabled = false;
+						if (numPage > 1) {
+							previous.disabled = false;
+						}
+						searchButton.disabled = false;
+					});
 			});
-		});	
+		});
 	}
+
+
 
 
 	getSounds(queryText, nbPage) {
@@ -1026,16 +1095,16 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const xhr = new XMLHttpRequest();
 		xhr.open('GET', url);
 		xhr.responseType = 'json';
-	
+
 		return new Promise((resolve, reject) => {
 			xhr.onreadystatechange = () => {
 				if (xhr.readyState === 4) {
 					if (xhr.status === 200) {
 						const arrayOfSoundIdsAndNames = xhr.response.results.map(sound => [sound.id, sound.name]);
 						resolve(arrayOfSoundIdsAndNames);
-					} 
+					}
 					else if (xhr.status === 401) {
-						if(!searchButton.classList.contains('error')){
+						if (!searchButton.classList.contains('error')) {
 							searchButton.classList.add('error');
 							searchButton.textContent = 'Error';
 						}
@@ -1046,7 +1115,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 						reject(new Error('Unauthorized : ' + xhr.response.detail));
 					}
 					else if (xhr.status === 404) {
-						if(!searchButton.classList.contains('error')){
+						if (!searchButton.classList.contains('error')) {
 							searchButton.classList.add('error');
 							searchButton.textContent = 'Error';
 						}
@@ -1057,7 +1126,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 						reject(new Error('Sounds not found : ' + xhr.response.detail));
 					}
 					else if (xhr.status === 429) {
-						if(!searchButton.classList.contains('error')){
+						if (!searchButton.classList.contains('error')) {
 							searchButton.classList.add('error');
 							searchButton.textContent = 'Error';
 						}
@@ -1068,7 +1137,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 						reject(new Error('Too many requests : ' + xhr.response.detail));
 					}
 					else {
-						if(!searchButton.classList.contains('error')){
+						if (!searchButton.classList.contains('error')) {
 							searchButton.classList.add('error');
 							searchButton.textContent = 'Error';
 						}
@@ -1105,16 +1174,16 @@ export default class SamplerHTMLElement extends HTMLElement {
 				const dropUrl = e.dataTransfer.getData('url');
 
 				// Si drag index commence par pad
-				if(dragIndex.startsWith('pad')){
-					if(dragIndex != dropIndex){
+				if (dragIndex.startsWith('pad')) {
+					if (dragIndex != dropIndex) {
 						this.swapSample(dragIndex, dropIndex);
 					}
 				}
-				else if(dragIndex.startsWith('result')){
+				else if (dragIndex.startsWith('result')) {
 					this.addSampleToPad(dragIndex, dropIndex, dropUrl);
 				}
-			});	
-			
+			});
+
 			b.addEventListener('dragend', (e) => {
 				e.preventDefault();
 			});
@@ -1141,16 +1210,16 @@ export default class SamplerHTMLElement extends HTMLElement {
 			const dropUrl = e.dataTransfer.getData('url');
 
 			// Si drag index commence par pad
-			if(dragIndex.startsWith('pad')){
-				if(dragIndex != dropIndex){
+			if (dragIndex.startsWith('pad')) {
+				if (dragIndex != dropIndex) {
 					this.swapSample(dragIndex, dropIndex);
 				}
 			}
-			else if(dragIndex.startsWith('result')){
+			else if (dragIndex.startsWith('result')) {
 				this.addSampleToPad(dragIndex, dropIndex, dropUrl);
 			}
-		});	
-		
+		});
+
 		b1.addEventListener('dragend', (e) => {
 			e.preventDefault();
 		});
@@ -1283,7 +1352,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	stopAllSoundsPads = () => {
 		for (let i = 0; i < this.samplePlayers.length; i++) {
-			if(this.samplePlayers[i] != null){
+			if (this.samplePlayers[i] != null) {
 				this.samplePlayers[i].stop();
 			}
 		}
@@ -1291,7 +1360,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	stopAllSoundsExplorer = () => {
 		for (let i = 0; i < this.explorerSamplePlayers.length; i++) {
-			if(this.explorerSamplePlayers[i] != null){
+			if (this.explorerSamplePlayers[i] != null) {
 				this.explorerSamplePlayers[i].stop();
 			}
 		}
@@ -1408,16 +1477,34 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.deleteSample(index);
 		}
 		b.appendChild(deleteSample);
-		
+
 
 		b.onclick = (e) => {
 			// passe le bouton en active, supprie le active des autres padbutton
 			// display name of the sound inside the event.target element
-			this.player = this.samplePlayers[index];
+
+			if(this.player != this.samplePlayers[index]){
+				this.player = this.samplePlayers[index];
+			}
+
+			console.log('pad' + index + ' clicked');
 			// set effects knobs to current values
 			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
+
+			//adsr
+			this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;
+			this.shadowRoot.querySelector('#knobDecay').value = this.player.effects.decayValue;
+			this.shadowRoot.querySelector('#knobSustain').value = this.player.effects.sustainValue;
+			this.shadowRoot.querySelector('#knobRelease').value = this.player.effects.releaseValue;
+			
+			const envBtn = this.shadowRoot.querySelector('#envBtn');
+			if(!this.player.enableAdsr){
+				envBtn.innerHTML = 'Enable';
+			} else {
+				envBtn.innerHTML = 'Disable';
+			}
 
 
 			// Affiche le nom du son dans le div sans le <button>
@@ -1557,7 +1644,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				// Pour chaque son on créé un SamplePlayer
 				this.decodedSounds.forEach((decodedSound, index) => {
 					// Si bufferList est vide on passe au suivant
-					if (decodedSound != undefined){
+					if (decodedSound != undefined) {
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
 						this.setPad(index);
@@ -1580,7 +1667,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.decodedSounds = bufferList;
 				// Pour chaque son on créé un SamplePlayer
 				this.decodedSounds.forEach((decodedSound, index) => {
-					if(decodedSound != undefined){
+					if (decodedSound != undefined) {
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
 
 						this.samplePlayers[index].reversed = presetToLoad[index].reversed;
@@ -1597,7 +1684,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 						SamplerHTMLElement.name[index] = presetToLoad[index].name;
 
 						// Reverse le son si il est inversé
-						if(this.samplePlayers[index].reversed){
+						if (this.samplePlayers[index].reversed) {
 							this.samplePlayers[index].decodedSound = this.samplePlayers[index].reverseSound(this.samplePlayers[index].decodedSound);
 						}
 
@@ -1627,7 +1714,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					if (sample != null){
+					if (sample != null) {
 						newURLs[index] = sample.url;
 					}
 					else {
@@ -1646,7 +1733,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					if (sample != null){
+					if (sample != null) {
 						newURLs[index] = sample.url;
 					}
 					else {
@@ -1663,7 +1750,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				let presetToLoad = JSON.parse(localStorage.getItem(preset));
 				let newURLs = [];
 				presetToLoad.forEach((sample, index) => {
-					if (sample != null){
+					if (sample != null) {
 						newURLs[index] = sample.url;
 					}
 					else {
@@ -1682,7 +1769,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		SamplerHTMLElement.URLs = [];
 		SamplerHTMLElement.name = [];
-		
+
 		// On récupère le preset
 		const preset = this.shadowRoot.querySelector('#selectPreset');
 
@@ -1809,7 +1896,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.createPresetOptions();
 				this.changePreset(presetName);
 				this.displayPresetButtons();
-				
+
 				SamplerHTMLElement.URLs = presetToSave.map((sample) => {
 					return sample.url;
 				});
@@ -1896,9 +1983,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	displayPresetButtons = () => {
 		const preset = this.shadowRoot.querySelector('#selectPreset').value;
-	
+
 		const deletePreset = this.shadowRoot.querySelector('#deletePreset');
-	
+
 		if (preset === "factoryPreset1" || preset === "factoryPreset2") {
 			deletePreset.innerHTML = "Reset preset";
 		}
@@ -2136,12 +2223,61 @@ export default class SamplerHTMLElement extends HTMLElement {
 	};
 
 
+	setupMidiListeners(audioNode) {
+		const wamNode = audioNode._wamNode;
+		wamNode.addEventListener('wam-midi', (e) => this.processMIDIEvents([{ event: e.detail.data.bytes, time: 0 }]));
+	}
+
+	processMIDIEvents(midiEvents) {
+		midiEvents.forEach(message => {
+			if (message.event[0] == MIDI.NOTE_ON) {
+				let midiNote = message.event[1]
+				let velocity = message.event[2];
+				if (velocity) this.noteOn(midiNote, message.time)
+				else this.noteOff(midiNote, message.time)
+			} else if (message.event[0] == MIDI.NOTE_OFF) {
+				let midiNote = message.event[1]
+				this.noteOff(midiNote, message.time)
+			} else if (message.event[0] >= MIDI.CC && message.event[0] < MIDI.CC + 16) {
+				let controlId = message.event[0];
+				let ccValue = message.event[2];
+				this.controlChange(controlId, ccValue)
+			}
+		});
+	}
+
+	controlChange(controlId, ccValue) {
+		if (!this.player) return;
+		const samplePlayer = this.player;
+		console.log("controlChange", controlId, ccValue)
+		if (controlId == 176) {
+			console.log("test");
+			samplePlayer.effects.volumeGain = parseFloat(ccValue/127);
+			this.shadowRoot.querySelector('#knob1').value = parseFloat(ccValue/127);
+		}
+	}
+
+	noteOn(note, tickStartTime) {
+		console.log("noteOn", note, tickStartTime)
+		const padIndex = note - 60;
+		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
+		this.shadowRoot.querySelector('#pad' + padIndex).click();
+	}
+
+	noteOff(note, tickStartTime) {
+		console.log("noteOff", note, tickStartTime)
+		const padIndex = note - 60;
+		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
+		this.shadowRoot.querySelector('#pad' + padIndex).classList.remove('active');
+	}
+
 	// name of the custom HTML element associated
 	// with the plugin. Will appear in the DOM if
 	// the plugin is visible
 	static is() {
 		return 'sampler-html-element-without-builder';
 	}
+
 }
 
 if (!customElements.get(SamplerHTMLElement.is())) {

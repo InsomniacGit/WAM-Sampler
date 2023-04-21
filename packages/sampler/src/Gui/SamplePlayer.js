@@ -1,5 +1,6 @@
 import WaveformDrawer from './WaveformDrawer.js';
 import EffectStack from './EffectStack.js';
+import ADSRNode from "./adsrNode.js";
 
 export default class SamplePlayer {
     constructor(audioCtx, canvasWaveform, canvasOverlay, color, decodedSound, pluginAudioNode) {
@@ -11,8 +12,8 @@ export default class SamplePlayer {
 
         // effects
         this.effects = new EffectStack(this.ctx);
-        this.reversed = false;
 
+        this.enableAdsr = false;
         
 
         // we add an overlay canvas on top of the waveform canvas
@@ -43,11 +44,47 @@ export default class SamplePlayer {
         this.bufferSource = this.ctx.createBufferSource();
         this.bufferSource.buffer = this.decodedSound;
         this.inputNode = this.bufferSource;
-        this.bufferSource.connect(this.effects.inputNode);
+
+        let bufferDuration = this.bufferSource.buffer.duration;
+
+        //ADSR envelope
+       
+        //if env is enabled 
+        // this.env = ADSRNode(this.ctx, {
+        //     attack : 0.2,
+        //     decay : 0.2,
+        //     sustain : 1,
+        //     release : 0.5
+        // });
+        this.gainEnvNode = this.ctx.createGain();
+        this.effects.opts.attack = this.effects.attackValue;
+        this.effects.opts.decay = this.effects.decayValue;
+        this.effects.opts.sustain = this.effects.sustainValue;
+        this.effects.opts.release = this.effects.releaseValue;
+        if(this.enableAdsr) {
+            //setParamsEnvValue(this.effects.opts);
+            let sustime = bufferDuration - (this.effects.opts.attack + this.effects.opts.decay + this.effects.opts.release);
+            sustime = bufferDuration; //temps temporaire de sustain
+            let downtime = this.effects.opts.attack + this.effects.opts.decay + sustime;
+            this.gainEnvNode.gain.value = 0;
+            this.env = new ADSRNode(this.ctx, this.effects.opts);
+            this.env.start(this.ctx.currentTime);
+            this.env.connect(this.gainEnvNode.gain);
+            this.env.trigger(this.ctx.currentTime);
+            this.env.release(this.ctx.currentTime + parseFloat(sustime));
+        }
+        
+        if(!this.enableAdsr) {
+            this.gainEnvNode.gain.value = 1;
+        }
+
+        //connect buffer sound to gainEnvNode then to effects
+        this.bufferSource.connect(this.gainEnvNode);
+        this.gainEnvNode.connect(this.effects.inputNode);
 
         //this.bufferSource.connect(this.ctx.destination);
 
-        let bufferDuration = this.bufferSource.buffer.duration;
+        
         // pixelsToSeconds
         this.leftTrimBar.startTime = this.pixelToSeconds(this.leftTrimBar.x, bufferDuration);
         this.trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
@@ -123,36 +160,25 @@ export default class SamplePlayer {
     }
 
     drawTimes() {
-
+        if (!this.bufferSource) return;
         let ctx = this.ctxCanvasOverlay;
-        let currentText = "";
 
-        if(!this.bufferSource && !this.totalTime) return;
-        else if (!this.bufferSource){
-            // draw in canvas currentTime in format seconds:miliseconds
-            currentText = "0:00";
-        }
-        else{
-            // compute length of the region being played
-            this.totalTime = this.bufferSource.buffer.duration;
+        ctx.save();
 
-            // draw in canvas currentTime in format seconds:miliseconds
-            let elapsedTime = this.ctx.currentTime - this.startTime;
-            let elapsedTimeInPixels = this.secondsToPixel(elapsedTime, this.bufferSource.buffer.duration);
-            let currentTime = this.pixelToSeconds(elapsedTimeInPixels, this.bufferSource.buffer.duration);
-            let currentSeconds = Math.floor(currentTime);
-            let currentMiliseconds = Math.floor((currentTime - currentSeconds) * 100);
-            
-            currentText = currentSeconds + ":" + currentMiliseconds;
-        }
-
+        // draw in canvas currentTime in format seconds:miliseconds
+        let elapsedTime = this.ctx.currentTime - this.startTime;
+        let elapsedTimeInPixels = this.secondsToPixel(elapsedTime, this.bufferSource.buffer.duration);
+        let currentTime = this.pixelToSeconds(elapsedTimeInPixels, this.bufferSource.buffer.duration);
+        let currentSeconds = Math.floor(currentTime);
+        let currentMiliseconds = Math.floor((currentTime - currentSeconds) * 100);
+        let currentText = currentSeconds + ":" + currentMiliseconds;
+        
+        // compute length of the region being played
         const pixelLength = this.rightTrimBar.x - this.leftTrimBar.x;
-        const secondLength = this.pixelToSeconds(pixelLength, this.totalTime);
+        const secondLength = this.pixelToSeconds(pixelLength, this.bufferSource.buffer.duration);
         let seconds = Math.floor(secondLength);
         let miliseconds = Math.floor((secondLength - seconds) * 100);
-
         // draw the times
-        ctx.save();
         let text = currentText + " / " + seconds + ":" + miliseconds;
         ctx.fillStyle = "white";
         ctx.font = "10px Arial";
