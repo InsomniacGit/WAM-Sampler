@@ -585,6 +585,10 @@ let template = `
 					<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
 					<label for="knob3">Tone</label>
 				</div>
+				<div class="knob" id="pitch">
+					<webaudio-knob  id="knobPitch" height="30" width="30" sprites="100" min="-24" max="24" step="1" value="0" midilearn="1" tooltip="Pitch" %.2f"></webaudio-knob>
+					<label for="knob3">Pitch</label>
+				</div>
 				<div>
 					<button id="reverse">Reverse</button>
 				</div>			
@@ -798,6 +802,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.player.effects.tone = parseFloat(e.target.value);
 		});
 
+		this.shadowRoot.querySelector('#knobPitch').addEventListener('input', (e) => {
+			if (this.player == undefined) return;
+			const pitchValue = parseInt(e.target.value);
+			this.player.pitchValue = pitchValue;
+			this.player.effects.pitchRate= 2 ** (pitchValue/12);
+		});
+
 		//button reverse
 		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
 			if (this.player == undefined) return;
@@ -807,7 +818,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
-			console.log(this.player.effects);
 		});
 
 		//envelope ADSR
@@ -1510,6 +1520,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
+
+			this.shadowRoot.querySelector('#knobPitch').value = this.player.pitchValue;
 
 			//adsr
 			this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;

@@ -46,9 +46,9 @@ export default class EffectStack {
         this.volumeGain = 0.5;
         this.pan = 0;
         this.tone = 0;
+        this.pitchRate = 1;
         this.lowShelfNode.frequency.value = 300;
         this.highShelfNode.frequency.value = 2000;
-
         //ADSR
         this.opts = {
             attack: 0.1,
@@ -110,6 +110,8 @@ export default class EffectStack {
 
         this.toneValue = _tone;
 	}
+
+    
 
     connect(node) {
         this.outputNode.connect(node);

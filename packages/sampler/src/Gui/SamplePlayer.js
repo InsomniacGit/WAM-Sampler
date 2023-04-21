@@ -9,12 +9,11 @@ export default class SamplePlayer {
         this.decodedSound = decodedSound;
         this.color = color;
         this.pluginAudioNode = pluginAudioNode;
-
         // effects
         this.effects = new EffectStack(this.ctx);
 
+        this.pitchValue = 0;
         this.enableAdsr = false;
-        
 
         // we add an overlay canvas on top of the waveform canvas
         this.canvasOverlay = canvasOverlay;
@@ -43,6 +42,7 @@ export default class SamplePlayer {
 
         this.bufferSource = this.ctx.createBufferSource();
         this.bufferSource.buffer = this.decodedSound;
+        this.bufferSource.playbackRate.value = this.effects.pitchRate;
         this.inputNode = this.bufferSource;
 
         let bufferDuration = this.bufferSource.buffer.duration;
