@@ -30,7 +30,7 @@
     ]
   },
   "dependencies": {
-    "wam-host": "^1.0.0",
+    "wam-host": "^1.0.1",
     "wam-plugin": "^1.0.0"
   }
 }
