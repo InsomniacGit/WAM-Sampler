@@ -470,11 +470,29 @@ option {
 	position: relative;
 }
 
+#envBtn{
+	width: 50px;
+	height: 20px;
+	font-size: 10px;
+	justify-content: center;
+	align-items: center;
+	border-radius: 10px;
+	border: none;
+	color: black;
+	cursor: pointer;
+	box-shadow: none;
+	position: relative;
+}
+
 .choose {
 	background-color: orange;
 	border: 1px solid red;
 }
 
+.knobDisabled{
+	pointer-events: none;
+	opacity: 0.5;
+}
 `;
 
 let template = `
@@ -612,19 +630,19 @@ let template = `
 			</div>
 
 			<div id="ADSR">
-				<div class="knob" id="adsrAttack">
+				<div class="knobEnv" id="adsrAttack">
 					<webaudio-knob  id="knobAttack" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.2" midilearn="1" tooltip="Attack %.2f"></webaudio-knob>
 					<label for="knobAttack">Attack</label>
 				</div>
-				<div class="knob" id="adsrDecay">
+				<div class="knobEnv" id="adsrDecay">
 					<webaudio-knob  id="knobDecay" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.2" midilearn="1" tooltip="Decay %.2f"></webaudio-knob>
 					<label for="knobDecay">Decay</label>
 				</div>
-				<div class="knob" id="adsrSustain">
+				<div class="knobEnv" id="adsrSustain">
 				<webaudio-knob  id="knobSustain" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Sustain %.2f"></webaudio-knob>
 				<label for="knobSustain">Sustain</label>
 				</div>
-				<div class="knob" id="adsrRelease">
+				<div class="knobEnv" id="adsrRelease">
 				<webaudio-knob  id="knobRelease" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.3" midilearn="1" tooltip="Release %.2f"></webaudio-knob>
 				<label for="knobRelease">Release</label>
 				</div>
@@ -662,6 +680,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// MANDATORY for the GUI to observe the plugin state
 		this.plugin = plugin;
 
+		
+		//set control bindings for midi
+		this.controlBindings = new Map();
+
+		this.controlBindings.set("volume", 176);
+		this.controlBindings.set("pan", 177);
+		this.controlBindings.set("tone", 178);
+		this.controlBindings.set("pitch", 179);
+
+		//ADSR
+		this.controlBindings.set("attack", 180);
+		this.controlBindings.set("decay", 181);
+		this.controlBindings.set("sustain", 182);
+		this.controlBindings.set("release", 183);
+
+
+		//i have the key i want to log the value of
 
 		// apiKey BUFFA :
 		//this.apiKey = 'gWrbi0mUOoh7gaZgxp1Eh5rXB1hZ4UKZ2AnV8nqo';
@@ -824,16 +859,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		//enable ADSR;
 		const envBtn = this.shadowRoot.querySelector('#envBtn');
+		const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
+		//disable all knobs
+		envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
 		envBtn.addEventListener('click', (e) => {
 			if (this.player == undefined) return;
 			if (!this.player.enableAdsr) {
 				envBtn.innerHTML = "Disable";
 				this.player.enableAdsr = true;
+				envBtn.classList.add('choose');
+				envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
 				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
 			}
 			else {
 				envBtn.innerHTML = "Enable";
 				this.player.enableAdsr = false;
+				envBtn.classList.remove('choose');
+				envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
 				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
 			}
 		});
@@ -1530,10 +1572,17 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knobRelease').value = this.player.effects.releaseValue;
 			
 			const envBtn = this.shadowRoot.querySelector('#envBtn');
+			const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
+			envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
+			
 			if(!this.player.enableAdsr){
 				envBtn.innerHTML = 'Enable';
+				envBtn.classList.remove('choose');
+				envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
 			} else {
 				envBtn.innerHTML = 'Disable';
+				envBtn.classList.add('choose');
+				envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
 			}
 
 
@@ -1912,12 +1961,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
+							
 							// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 							effects: {
 								volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
 								pan: Math.round(samplePlayer.effects.pan * 100) / 100,
 								tone: Math.round(samplePlayer.effects.tone * 100) / 100
 							}
+							
 						}
 					}
 				});
@@ -2259,7 +2310,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	processMIDIEvents(midiEvents) {
+
+
+		//si on écoute pas les bindings (faire un if)
 		midiEvents.forEach(message => {
+			
 			if (message.event[0] == MIDI.NOTE_ON) {
 				let midiNote = message.event[1]
 				let velocity = message.event[2];
@@ -2274,22 +2329,63 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.controlChange(controlId, ccValue)
 			}
 		});
+		console.log(midiEvents[0])
+		//si on écoute les bindings
+		// dans la map on va par exemple changer le binding du volume en récupérant la valeur d'un autre controleur
 	}
 
 	controlChange(controlId, ccValue) {
 		if (!this.player) return;
 		const samplePlayer = this.player;
 		console.log("controlChange", controlId, ccValue)
-		if (controlId == 176) {
+
+		if(controlId == this.controlBindings.get('volume')) {
 			console.log("test");
 			samplePlayer.effects.volumeGain = parseFloat(ccValue/127);
 			this.shadowRoot.querySelector('#knob1').value = parseFloat(ccValue/127);
+		}
+		if(controlId == this.controlBindings.get('pan')) {
+			samplePlayer.effects.pan = parseFloat((ccValue/127) * 2 - 1);
+			this.shadowRoot.querySelector('#knob2').value = parseFloat((ccValue/127) * 2 - 1);
+		}
+
+		if(controlId ==  this.controlBindings.get('tone')) {
+			samplePlayer.effects.tone = parseFloat((ccValue/127) * 2 - 1);
+			this.shadowRoot.querySelector('#knob3').value = parseFloat((ccValue/127) * 2 - 1);
+		}
+
+		if(controlId == this.controlBindings.get('pitch')) {
+			 samplePlayer.pitchValue = parseInt(((ccValue/127) * 2 - 1) * 24);
+			 //console.log("pitch value : " + samplePlayer.pitchValue);
+			 samplePlayer.effects.pitchRate = 2 ** (samplePlayer.pitchValue/12);
+			this.shadowRoot.querySelector('#knobPitch').value = parseFloat(((ccValue/127) * 2 - 1) * 24);
+		}
+
+		//adsr
+		if(controlId == this.controlBindings.get('attack')) {
+			samplePlayer.effects.attackValue = parseFloat((ccValue/127) * 2);
+			this.shadowRoot.querySelector('#knobAttack').value = parseFloat((ccValue/127)) * 2;
+		}
+
+		if(controlId == this.controlBindings.get('decay')) {
+			samplePlayer.effects.decayValue = parseFloat((ccValue/127));
+			this.shadowRoot.querySelector('#knobDecay').value = parseFloat((ccValue/127));
+		}
+
+		if(controlId == this.controlBindings.get('sustain')) {
+			samplePlayer.effects.sustainValue = parseFloat((ccValue/127));
+			this.shadowRoot.querySelector('#knobSustain').value = parseFloat((ccValue/127));
+		}
+
+		if(controlId == this.controlBindings.get('release')) {
+			samplePlayer.effects.releaseValue = parseFloat((ccValue/127) * 2);
+			this.shadowRoot.querySelector('#knobRelease').value = parseFloat((ccValue/127)) * 2;
 		}
 	}
 
 	noteOn(note, tickStartTime) {
 		console.log("noteOn", note, tickStartTime)
-		const padIndex = note - 60;
+		const padIndex = note - 60; // 60 is C3
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).click();
 	}
