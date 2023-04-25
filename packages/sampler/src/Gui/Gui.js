@@ -102,12 +102,22 @@ let style = `
 	color: white;
 	text-shadow: 0px 0px 1px black;
 	font-weight: bold;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	overflow-x: scroll;
+	/*overflow: hidden;*/
+	-ms-overflow-style: none;  /* IE and Edge */
+	scrollbar-width: none;  /* Firefox */
+	&::-webkit-scrollbar { /* Chrome, Safari, Opera */
+		display: none;
+	}
+	/*text-overflow: ellipsis;*/
 	white-space: nowrap;
     /* background-color: yellow; */
 }
-
+/*
+::-webkit-scrollbar {
+	display: none;
+  }
+*/
 #presets {
     /* background-color: lightgreen; */
     padding: 10px;
@@ -300,6 +310,8 @@ let style = `
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	border: 2px solid green;
+	border-radius: 3px;
 }
 
 .error {
@@ -586,8 +598,8 @@ let template = `
 		</div>
 
 		<div id="choice">
-			<button id="choiceKnobs">Knobs</button>
-			<button id="choiceExplorer">Explorer</button>
+			<button id="choiceExplorer">Freesound</button>
+			<button id="choiceKnobs">Effects</button>
 			<button id="choiceADSR">ADSR</button>
 
 			<div id="knobs">
@@ -619,8 +631,8 @@ let template = `
 				</div>
 				<div id="research">
 					<input type="text" id="search" name="search" placeholder="Freesound">
-					<button id="searchButton">Search</button>
 					<select id="timeRange"></select>
+					<button id="searchButton">Search</button>
 					<button id="previousPage"><<</button>
 					<button id="nextPage">>></button>
 				</div>
@@ -1748,18 +1760,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.decodedSounds.forEach((decodedSound, index) => {
 					if (decodedSound != undefined) {
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-
+						
 						this.samplePlayers[index].reversed = presetToLoad[index].reversed;
 
 						// On récupère les leftTrim et rightTrim du preset
 						this.samplePlayers[index].leftTrimBar.x = presetToLoad[index].leftTrim;
 						this.samplePlayers[index].rightTrimBar.x = presetToLoad[index].rightTrim;
 
+
 						// On récupère les effets du preset
 						this.samplePlayers[index].effects.volumeGain = presetToLoad[index].effects.volumeGain;
 						this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
 						this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
+						// this.samplePlayers[index].effects.attackValue = presetToLoad[index].effects.attackValue;
+						// this.samplePlayers[index].effects.decayValue = presetToLoad[index].effects.decayValue;
+						// this.samplePlayers[index].effects.sustainValue = presetToLoad[index].effects.sustainValue;
+						// this.samplePlayers[index].effects.releaseValue = presetToLoad[index].effects.releaseValue;
 						SamplerHTMLElement.name[index] = presetToLoad[index].name;
 
 						// Reverse le son si il est inversé
@@ -1966,7 +1983,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 							effects: {
 								volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
 								pan: Math.round(samplePlayer.effects.pan * 100) / 100,
-								tone: Math.round(samplePlayer.effects.tone * 100) / 100
+								tone: Math.round(samplePlayer.effects.tone * 100) / 100,
+								
+								attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
+								decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
+								sustainValue: Math.round(samplePlayer.effects.sustainValue * 100) / 100,
+								releaseValue: Math.round(samplePlayer.effects.releaseValue * 100) / 100,
 							}
 							
 						}
@@ -2015,7 +2037,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 						effects: {
 							volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
 							pan: Math.round(samplePlayer.effects.pan * 100) / 100,
-							tone: Math.round(samplePlayer.effects.tone * 100) / 100
+							tone: Math.round(samplePlayer.effects.tone * 100) / 100,
+							
+							attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
+							decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
+							sustainValue: Math.round(samplePlayer.effects.sustainValue * 100) / 100,
+							releaseValue: Math.round(samplePlayer.effects.releaseValue * 100) / 100,
 						}
 					}
 				}

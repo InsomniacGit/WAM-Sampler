@@ -61,6 +61,7 @@ export default class EffectStack {
         this.sustainValue = 1;
         //this.sustime = 5; //temps de maintien de la note
         this.releaseValue = 0.3;
+
     }
 
     setParamsEnvValue(_opts){
