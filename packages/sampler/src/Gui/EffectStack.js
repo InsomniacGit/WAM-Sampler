@@ -46,12 +46,13 @@ export default class EffectStack {
         this.volumeGain = 0.5;
         this.pan = 0;
         this.tone = 0;
+        this.toneValue = 0;
         this.pitchRate = 1;
         this.lowShelfNode.frequency.value = 300;
         this.highShelfNode.frequency.value = 2000;
         //ADSR
         this.opts = {
-            attack: 0.1,
+            attack: 0.2,
             decay: 0.2,
             sustain: 1,
             release: 0.3,
@@ -93,6 +94,10 @@ export default class EffectStack {
 		this.panNode.pan.value = _pan;
 		//console.log('pan', _pan);
 	}
+
+    get tone() {
+        return this.toneValue;
+    }
 
 	set tone(_tone) {
 		//if (!this.isInRange(_tone, -1, 1)) return;

@@ -12,6 +12,10 @@ export default class SamplePlayer {
         // effects
         this.effects = new EffectStack(this.ctx);
 
+        //adsr
+        this.env;
+        this.downtime;
+
         this.pitchValue = 0;
         this.enableAdsr = false;
 
@@ -26,7 +30,7 @@ export default class SamplePlayer {
         this.rightTrimBar = {
             x: this.canvasOverlay.width,
             color: "white"
-        } 
+        }
 
         this.waveformDrawer = new WaveformDrawer();
         this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
@@ -43,12 +47,18 @@ export default class SamplePlayer {
         this.bufferSource = this.ctx.createBufferSource();
         this.bufferSource.buffer = this.decodedSound;
         this.bufferSource.playbackRate.value = this.effects.pitchRate;
+
         this.inputNode = this.bufferSource;
 
         let bufferDuration = this.bufferSource.buffer.duration;
 
+        // console.log("buffer length : " + this.bufferSource.buffer.length);
+        // console.log("buffer playbackRate : " + this.bufferSource.playbackRate.value);
+        // console.log("buffer Duration : " + this.bufferSource.buffer.duration);
+        //console.log("new buffer Duration : " + newBufferDuration);
+
         //ADSR envelope
-       
+
         //if env is enabled 
         // this.env = ADSRNode(this.ctx, {
         //     attack : 0.2,
@@ -61,20 +71,21 @@ export default class SamplePlayer {
         this.effects.opts.decay = this.effects.decayValue;
         this.effects.opts.sustain = this.effects.sustainValue;
         this.effects.opts.release = this.effects.releaseValue;
-        if(this.enableAdsr) {
+        if (this.enableAdsr) {
             //setParamsEnvValue(this.effects.opts);
             let sustime = bufferDuration - (this.effects.opts.attack + this.effects.opts.decay + this.effects.opts.release);
             sustime = bufferDuration; //temps temporaire de sustain
-            let downtime = this.effects.opts.attack + this.effects.opts.decay + sustime;
+            this.downtime = this.effects.opts.attack + this.effects.opts.decay + sustime;
             this.gainEnvNode.gain.value = 0;
             this.env = new ADSRNode(this.ctx, this.effects.opts);
             this.env.start(this.ctx.currentTime);
             this.env.connect(this.gainEnvNode.gain);
             this.env.trigger(this.ctx.currentTime);
-            this.env.release(this.ctx.currentTime + parseFloat(sustime));
+            //this.env.release(this.ctx.currentTime + parseFloat(sustime));
+            //this.releaseEnv();
         }
-        
-        if(!this.enableAdsr) {
+
+        if (!this.enableAdsr) {
             this.gainEnvNode.gain.value = 1;
         }
 
@@ -84,7 +95,7 @@ export default class SamplePlayer {
 
         //this.bufferSource.connect(this.ctx.destination);
 
-        
+
         // pixelsToSeconds
         this.leftTrimBar.startTime = this.pixelToSeconds(this.leftTrimBar.x, bufferDuration);
         this.trimmedDuration = this.pixelToSeconds(this.rightTrimBar.x - this.leftTrimBar.x, bufferDuration);
@@ -94,12 +105,19 @@ export default class SamplePlayer {
         this.startTime = this.ctx.currentTime;
     }
 
+    releaseEnv() {
+        if (this.env) {
+            this.env.release(this.ctx.currentTime + parseFloat(this.downtime));
+        }
+    }
+
+
     stop() {
         if (this.bufferSource) {
-          this.bufferSource.stop();
-          this.bufferSource.disconnect();
-          this.bufferSource = null;
-          this.startTime = 0;
+            this.bufferSource.stop();
+            this.bufferSource.disconnect();
+            this.bufferSource = null;
+            this.startTime = 0;
         }
     }
 
@@ -119,6 +137,19 @@ export default class SamplePlayer {
         this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
 
         return newBuffer;
+    }
+
+    newPitchSound(buffer, pitchRate) {
+        let newBuffer = this.ctx.createBuffer(
+            buffer.numberOfChannels,
+            buffer.length,
+            this.ctx.sampleRate
+        )
+
+        for (let i = 0; i < buffer.numberOfChannels; i++) {
+            let channelData = buffer.getChannelData(i);
+            newBuffer.copyToChannel(channelData, i)
+        };
     }
 
     start() {
@@ -172,7 +203,7 @@ export default class SamplePlayer {
         let currentSeconds = Math.floor(currentTime);
         let currentMiliseconds = Math.floor((currentTime - currentSeconds) * 100);
         let currentText = currentSeconds + ":" + currentMiliseconds;
-        
+
         // compute length of the region being played
         const pixelLength = this.rightTrimBar.x - this.leftTrimBar.x;
         const secondLength = this.pixelToSeconds(pixelLength, this.bufferSource.buffer.duration);
@@ -281,7 +312,7 @@ export default class SamplePlayer {
     }
 
     distance(x1, x2) {
-        return (x2-x1);
+        return (x2 - x1);
     }
 
     // on mouse move
@@ -295,7 +326,7 @@ export default class SamplePlayer {
             }
             // Si la barre de gauche est déplacée à droite de la barre de droite
             // alors on realease les trimbars
-            if (this.leftTrimBar.x > this.rightTrimBar.x){
+            if (this.leftTrimBar.x > this.rightTrimBar.x) {
                 this.releaseTrimBarsOnMouseOut();
                 this.leftTrimBar.x = this.rightTrimBar.x;
             }
@@ -317,7 +348,7 @@ export default class SamplePlayer {
             }
             // Si la barre de droite est déplacée à gauche de la barre de gauche
             // alors on realease les trimbars
-            if (this.rightTrimBar.x < this.leftTrimBar.x){
+            if (this.rightTrimBar.x < this.leftTrimBar.x) {
                 this.releaseTrimBarsOnMouseOut();
                 this.rightTrimBar.x = this.leftTrimBar.x;
             }

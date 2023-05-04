@@ -8,6 +8,9 @@ import SamplePlayer from './SamplePlayer.js';
 // that build in pure JS the syles and html template directly
 // in the code...
 let style = `
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
 .wrapper {
     position: relative;
     width: 280px;
@@ -113,6 +116,54 @@ let style = `
 	white-space: nowrap;
     /* background-color: yellow; */
 }
+
+#labelSampleName {
+    width: 280px;
+    height: 20px;
+	padding: 2px;
+    margin: 0px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+	color: white;
+	text-shadow: 0px 0px 1px black;
+	font-weight: bold;
+	overflow-x: scroll;
+	/*overflow: hidden;*/
+	-ms-overflow-style: none;  /* IE and Edge */
+	scrollbar-width: none;  /* Firefox */
+	&::-webkit-scrollbar { /* Chrome, Safari, Opera */
+		display: none;
+	}
+	/*text-overflow: ellipsis;*/
+	white-space: nowrap;
+    /* background-color: yellow; */
+}
+
+#labelSampleName, #inputSampleName, #choiceExplorer, #choiceKnobs, #choiceADSR {
+	// top: 15px;
+	// left: 400px;
+	//position: absolute;
+	font-family: 'Share Tech Mono', monospace;
+}
+
+.presetClass, .researchClass, .effectClass{
+	font-family: 'Share Tech Mono', monospace;
+}
+
+.effectClass {
+	font-size: 10px;
+}
+.adsrClass {
+	font-size: 12px;
+	font-family: 'Share Tech Mono', monospace;
+	
+}
+
+#inputSampleName {
+	display: none;
+}
+
 /*
 ::-webkit-scrollbar {
 	display: none;
@@ -124,6 +175,7 @@ let style = `
     width: 280px;
 	height: 35px;
 	overflow: hidden;
+	
 }
 
 #selectPreset {
@@ -185,6 +237,8 @@ let style = `
 	position: relative;
 	overflow: hidden;
 	text-overflow: ellipsis;
+
+	font-family: 'Share Tech Mono', monospace;
 }
 
 .padactionbutton {
@@ -217,6 +271,7 @@ let style = `
 	width: 280px;
 	height: 185px;
 	padding: 10px;
+	
 }
 
 #choiceKnobs, #choiceExplorer, #choiceADSR {
@@ -362,7 +417,6 @@ let style = `
 	margin: 0px;
 }
 
-
 .resultExplorer {
 	display: inline-block;
 	width: 90px;
@@ -400,7 +454,6 @@ button, select, input {
 option {
 	text-align: center;
 	overflow: hidden;
-
 }
 
 .resultButton.set {
@@ -466,6 +519,22 @@ option {
 	color: white;
 	text-shadow: 0px 0px 1px black;
 	font-size: 15px;
+}
+
+.knobEnv {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	justify-items: center;
+    align-items: center;
+	width: 50px;
+	height: 50px;
+}
+
+.knobEnv label {
+	text-align: center;
+	color: white;
+	text-shadow: 0px 0px 1px black;
 }
 
 #reverse {
@@ -580,7 +649,12 @@ let template = `
 	<div id ='parameters'>
 
 		<div id="waveform">
-			<p id="soundName">Waveform</p>
+			<div id="soundNameContainer">
+				<p id="soundName">
+				<label id="labelSampleName">Waveform</label>
+				<input type="text" id="inputSampleName" value="Waveform">
+				</p>
+			</div>	
 			<div class="wrapper">
 				<canvas id="myCanvas" width=280 height=50></canvas>
 				<canvas id="myCanvasOverlay" width=280 height=50></canvas>
@@ -588,13 +662,13 @@ let template = `
 		</div>
 
 		<div id="presets">
-			<select id="selectPreset">
+			<select id="selectPreset" class="presetClass">
 				<option value="factoryPreset1">Factory preset 1</option>
 				<option value="factoryPreset2">Factory preset 2</option>
 			</select>
-			<button id="createPreset">Create preset</button>
-			<button id="savePreset">Save preset</button>
-			<button id="deletePreset">Delete preset</button>
+			<button id="createPreset" class="presetClass">Create preset</button>
+			<button id="savePreset" class="presetClass">Save preset</button>
+			<button id="deletePreset" class="presetClass">Delete preset</button>
 		</div>
 
 		<div id="choice">
@@ -604,23 +678,23 @@ let template = `
 
 			<div id="knobs">
 				<div class="knob" id="volumeGain">
-					<webaudio-knob  id="knob1" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
-					<label for="knob1">Volume</label>
+					<webaudio-knob  id="knob1"  class="effectClass" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+					<label for="knob1" class="effectClass">Volume</label>
 				</div>
 				<div class="knob" id="pan">
-					<webaudio-knob  id="knob2" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
-					<label for="knob2">Pan</label>
+					<webaudio-knob  id="knob2"  class="effectClass" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Pan %.2f"></webaudio-knob>
+					<label for="knob2" class="effectClass">Pan</label>
 				</div>
 				<div class="knob" id="tone">
-					<webaudio-knob  id="knob3" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
-					<label for="knob3">Tone</label>
+					<webaudio-knob  id="knob3"  class="effectClass" height="30" width="30" sprites="100" min="-1" max="1" step="0.01" value="0" midilearn="1" tooltip="Tone %.2f"></webaudio-knob>
+					<label for="knob3" class="effectClass">Tone</label>
 				</div>
 				<div class="knob" id="pitch">
-					<webaudio-knob  id="knobPitch" height="30" width="30" sprites="100" min="-24" max="24" step="1" value="0" midilearn="1" tooltip="Pitch" %.2f"></webaudio-knob>
-					<label for="knob3">Pitch</label>
+					<webaudio-knob  id="knobPitch"  class="effectClass" height="30" width="30" sprites="100" min="-24" max="24" step="1" value="0" midilearn="1" tooltip="Pitch" %.2f"></webaudio-knob>
+					<label for="knob3" class="effectClass">Pitch</label>
 				</div>
 				<div>
-					<button id="reverse">Reverse</button>
+					<button id="reverse" class="effectClass" >Reverse</button>
 				</div>			
 			</div>
 
@@ -631,8 +705,8 @@ let template = `
 				</div>
 				<div id="research">
 					<input type="text" id="search" name="search" placeholder="Freesound">
-					<select id="timeRange"></select>
-					<button id="searchButton">Search</button>
+					<select id="timeRange" class="researchClass"></select>
+					<button id="searchButton" class="researchClass">Search</button>
 					<button id="previousPage"><<</button>
 					<button id="nextPage">>></button>
 				</div>
@@ -644,22 +718,22 @@ let template = `
 			<div id="ADSR">
 				<div class="knobEnv" id="adsrAttack">
 					<webaudio-knob  id="knobAttack" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.2" midilearn="1" tooltip="Attack %.2f"></webaudio-knob>
-					<label for="knobAttack">Attack</label>
+					<label for="knobAttack" class="adsrClass">Attack</label>
 				</div>
 				<div class="knobEnv" id="adsrDecay">
 					<webaudio-knob  id="knobDecay" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.2" midilearn="1" tooltip="Decay %.2f"></webaudio-knob>
-					<label for="knobDecay">Decay</label>
+					<label for="knobDecay" class="adsrClass">Decay</label>
 				</div>
 				<div class="knobEnv" id="adsrSustain">
 				<webaudio-knob  id="knobSustain" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Sustain %.2f"></webaudio-knob>
-				<label for="knobSustain">Sustain</label>
+				<label for="knobSustain" class="adsrClass">Sustain</label>
 				</div>
 				<div class="knobEnv" id="adsrRelease">
 				<webaudio-knob  id="knobRelease" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.3" midilearn="1" tooltip="Release %.2f"></webaudio-knob>
-				<label for="knobRelease">Release</label>
+				<label for="knobRelease" class="adsrClass">Release</label>
 				</div>
 				<div>
-				<button id="envBtn">Enable</button>
+				<button id="envBtn" class="effectClass">Enable</button>
 				</div>		
 			</div>
 		</div>
@@ -683,6 +757,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	static URLs = [];
 	static name = [];
+	static defaultName = [];
+
+	static defaultURLs1 = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
+	static defaultURLs2 = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
 
 	constructor(plugin) {
 		super();
@@ -692,7 +770,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// MANDATORY for the GUI to observe the plugin state
 		this.plugin = plugin;
 
-		
+
 		//set control bindings for midi
 		this.controlBindings = new Map();
 
@@ -727,7 +805,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		this.mousePos = { x: 0, y: 0 };
 
-
+		this.releaseTrig = false;
 	}
 
 	handleAnimationFrame = () => {
@@ -830,6 +908,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if (this.player == undefined) return;
 
 			this.player.effects.volumeGain = parseFloat(e.target.value);
+
 		});
 
 		this.shadowRoot.querySelector('#knob2').addEventListener('input', (e) => {
@@ -839,6 +918,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.player.effects.pan = parseFloat(e.target.value);
 
+
 		});
 
 		this.shadowRoot.querySelector('#knob3').addEventListener('input', (e) => {
@@ -847,13 +927,14 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if (this.player == undefined) return;
 
 			this.player.effects.tone = parseFloat(e.target.value);
+
 		});
 
 		this.shadowRoot.querySelector('#knobPitch').addEventListener('input', (e) => {
 			if (this.player == undefined) return;
 			const pitchValue = parseInt(e.target.value);
 			this.player.pitchValue = pitchValue;
-			this.player.effects.pitchRate= 2 ** (pitchValue/12);
+			this.player.effects.pitchRate = 2 ** (pitchValue / 12);
 		});
 
 		//button reverse
@@ -873,21 +954,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const envBtn = this.shadowRoot.querySelector('#envBtn');
 		const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
 		//disable all knobs
-		envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
+		envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
 		envBtn.addEventListener('click', (e) => {
 			if (this.player == undefined) return;
 			if (!this.player.enableAdsr) {
 				envBtn.innerHTML = "Disable";
 				this.player.enableAdsr = true;
 				envBtn.classList.add('choose');
-				envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
+				envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
 				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
 			}
 			else {
 				envBtn.innerHTML = "Enable";
 				this.player.enableAdsr = false;
 				envBtn.classList.remove('choose');
-				envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
+				envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
 				//console.log("this.player.enableAdsr = " + this.player.enableAdsr)
 			}
 		});
@@ -1008,6 +1089,90 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			save.classList.add('saved');
 		});
+	}
+
+	setLabel(index, b) {
+		const label = this.shadowRoot.querySelector('#labelSampleName');
+		const input = this.shadowRoot.querySelector('#inputSampleName');
+		const preset = this.shadowRoot.querySelector('#selectPreset').value;
+
+		let stockPresetNames = [];
+
+		// console.log("name : " + SamplerHTMLElement.name[index]);
+		// console.log("default name : " + SamplerHTMLElement.defaultName[index]);
+		// console.log("default name tableau : " + SamplerHTMLElement.defaultName);
+		//explorerName = name;
+		let preset1 = {};
+		let preset2 = {};
+
+		preset1.URLs = ['../audio/preset1/kick.wav', '../audio/preset1/snare.wav', '../audio/preset1/hihat.wav', '', '../audio/preset1/tom1.wav', '../audio/preset1/tom2.wav', '../audio/preset1/tom3.wav'];
+		preset1.names = preset1.URLs.map(url => url.split('/').pop().split('.')[0]);
+
+		preset2.URLs = ['../audio/presetComplet/kick.wav', '../audio/presetComplet/snare.wav', '../audio/presetComplet/tom1.wav', '../audio/presetComplet/tom2.wav', '../audio/presetComplet/tom3.wav', '../audio/presetComplet/tom4.wav', '../audio/presetComplet/hihat1.wav', '../audio/presetComplet/hihat2.wav', '../audio/presetComplet/clap1.wav', '../audio/presetComplet/clap2.wav', '../audio/presetComplet/crash1.wav', '../audio/presetComplet/crash2.wav', '../audio/presetComplet/ride1.wav', '../audio/presetComplet/ride2.wav', '../audio/presetComplet/perc1.wav', '../audio/presetComplet/perc2.wav'];
+		preset2.names = preset2.URLs.map(url => url.split('/').pop().split('.')[0]);
+
+		// if (preset === 'factoryPreset1') {
+		// 	stockPresetNames[index] = preset1.names[index];
+		// } else if (preset === 'factoryPreset2') {
+		// 	stockPresetNames[index] = preset2.names[index];
+		// }
+		// else {
+		// 	stockPresetNames[index] = SamplerHTMLElement.name[index];
+		// }
+
+		if (b.classList.contains('resultButton')) {
+			//disable the double click on the result button
+			label.ondblclick = () => {
+				return;
+			}
+
+		}
+
+		if (b.classList.contains('selected') && (b.classList.contains('padbutton')) || (b.classList.contains('padButton'))) {
+
+			label.ondblclick = () => {
+				label.style.display = 'none';
+				input.value = label.textContent;
+				input.style.display = 'inline-block';
+				input.style.outline = "none";
+				input.focus();
+			}
+
+			input.onblur = () => {
+				label.textContent = input.value;
+				if (label.textContent == "") {
+					label.textContent = SamplerHTMLElement.defaultName[index];
+				}
+				SamplerHTMLElement.name[index] = label.textContent;
+				b.innerHTML = SamplerHTMLElement.name[index];
+				//b.innerHTML = label.textContent;
+
+				// Ajoute un petit bouton pour supprimer le sample en haut à droite
+				const deleteSample = document.createElement('button');
+				deleteSample.classList.add('deleteSample');
+				deleteSample.id = 'deleteSample' + index;
+				deleteSample.innerHTML = 'X';
+				deleteSample.onclick = (e) => {
+					this.deleteSample(index);
+				}
+				b.appendChild(deleteSample);
+
+				label.style.display = "inline-block";
+				input.style.display = "none";
+				this.setKeyboardPress();
+			}
+
+			input.addEventListener('focus', (e) => {
+				this.removeAllKeyboardPress();
+				// si l'on presse la touche 'Enter'
+				input.addEventListener('keyup', (e) => {
+					if (e.keyCode === 13) {
+						input.blur();
+					}
+				});
+			});
+		}
+
 	}
 
 
@@ -1351,6 +1516,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		SamplerHTMLElement.name[index1] = SamplerHTMLElement.name[index2]
 		SamplerHTMLElement.name[index2] = tempName;
 
+		//Echange les defaultNames
+		const tempDefaultName = SamplerHTMLElement.defaultName[index1];
+		SamplerHTMLElement.defaultName[index1] = SamplerHTMLElement.defaultName[index2];
+		SamplerHTMLElement.defaultName[index2] = tempDefaultName;
+
 		// Echange les samplesPlayer
 		const tempPlayer = this.samplePlayers[index1];
 		this.samplePlayers[index1] = this.samplePlayers[index2];
@@ -1415,6 +1585,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On remet les noms
 		SamplerHTMLElement.name[index2] = button.innerHTML;
+		SamplerHTMLElement.defaultName[index2] = button.innerHTML;
+
+
 
 		// On remet les samplesPlayer
 		this.samplePlayers[index2] = this.explorerSamplePlayers[index1];
@@ -1424,7 +1597,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On met à jour le player
 		this.player = this.samplePlayers[index2];
-		this.shadowRoot.querySelector('#soundName').innerHTML = button.innerHTML;
+		this.shadowRoot.querySelector('#labelSampleName').innerHTML = button.innerHTML;
 		this.player.drawWaveform();
 
 		// On remet les listeners
@@ -1461,7 +1634,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b.classList.add('resultButton');
 		b.id = 'result' + index;
 		b.innerHTML = name;
-
 		b.addEventListener('click', (e) => {
 			// Si le son est chargé
 			if (this.explorerSamplePlayers[index] != null) {
@@ -1470,11 +1642,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 				this.player = this.explorerSamplePlayers[index];
 				// Affiche le nom du son dans le div sans le <button>
-				this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
+				this.shadowRoot.querySelector('#labelSampleName').innerHTML = b.innerHTML.split('<')[0];
 				this.player.drawWaveform();
 				this.player.play();
-
-
 				b.classList.add('active');
 				setTimeout(() => {
 					b.classList.remove('active');
@@ -1494,6 +1664,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 				// On ajoute la class .selected au bouton cliqué
 				b.classList.add('selected');
+
+				this.setLabel(index, b, name);
 			}
 		});
 
@@ -1542,6 +1714,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 		else if (SamplerHTMLElement.URLs[index].includes('/') && SamplerHTMLElement.URLs[index].includes('.')) {
 			SamplerHTMLElement.name[index] = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
+			SamplerHTMLElement.defaultName[index] = JSON.parse(JSON.stringify(SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0]));
 			b.innerHTML = SamplerHTMLElement.URLs[index].split('/').pop().split('.')[0];
 		}
 		else {
@@ -1565,11 +1738,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// passe le bouton en active, supprie le active des autres padbutton
 			// display name of the sound inside the event.target element
 
-			if(this.player != this.samplePlayers[index]){
+			if (this.player != this.samplePlayers[index]) {
 				this.player = this.samplePlayers[index];
 			}
 
 			console.log('pad' + index + ' clicked');
+			//console.log('defaultName :' + SamplerHTMLElement.defaultName[index]);
+			//console.log('name :' + SamplerHTMLElement.name[index]);
 			// set effects knobs to current values
 			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
@@ -1582,29 +1757,33 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knobDecay').value = this.player.effects.decayValue;
 			this.shadowRoot.querySelector('#knobSustain').value = this.player.effects.sustainValue;
 			this.shadowRoot.querySelector('#knobRelease').value = this.player.effects.releaseValue;
-			
+
 			const envBtn = this.shadowRoot.querySelector('#envBtn');
 			const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
-			envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
-			
-			if(!this.player.enableAdsr){
+			envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
+
+			if (!this.player.enableAdsr) {
 				envBtn.innerHTML = 'Enable';
 				envBtn.classList.remove('choose');
-				envKnobs.forEach((envKnob) => {envKnob.classList.add('knobDisabled')});
+				envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
 			} else {
 				envBtn.innerHTML = 'Disable';
 				envBtn.classList.add('choose');
-				envKnobs.forEach((envKnob) => {envKnob.classList.remove('knobDisabled')});
+				envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
 			}
 
 
 			// Affiche le nom du son dans le div sans le <button>
-			this.shadowRoot.querySelector('#soundName').innerHTML = b.innerHTML.split('<')[0];
+			this.shadowRoot.querySelector('#labelSampleName').innerHTML = b.innerHTML.split('<')[0];
 			this.player.drawWaveform();
 
 			//this.plugin.audioNode.play(this.player.buffer, this.player.getStartTime(), this.player.getDuration())
 			this.player.stop();
 			this.player.play();
+
+			// if (this.releaseTrig) {
+			// 	this.player.releaseEnv();
+			// }
 
 			//this.player.playReverse();
 
@@ -1629,6 +1808,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			// On ajoute la class .selected au bouton cliqué
 			b.classList.add('selected');
+
+			//permet de renommer le sample
+			this.setLabel(index, b);
 		};
 	}
 
@@ -1655,7 +1837,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.canvasContextOverlay.clearRect(0, 0, this.canvas.width, this.canvas.height);
 			this.player = null;
-			this.shadowRoot.querySelector('#soundName').innerHTML = 'Waveform';
+			this.shadowRoot.querySelector('#labelSamplename').innerHTML = 'Waveform';
 		}
 
 		// Supprime le samplePlayer
@@ -1681,6 +1863,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			preset.blur();
 
 			SamplerHTMLElement.name = [];
+			SamplerHTMLElement.defaultName = [];
 
 			// On récupère les urls du preset
 			const presetValue = this.loadPresetUrls();
@@ -1712,7 +1895,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			}
 
 			// On reset le nom du son
-			this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
+			this.shadowRoot.querySelector('#labelSampleName').innerHTML = "Waveform";
 
 
 			// On charge les nouveaux sons
@@ -1737,10 +1920,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 					// Si bufferList est vide on passe au suivant
 					if (decodedSound != undefined) {
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-
 						this.setPad(index);
 						this.displayPresetButtons();
-
 						window.requestAnimationFrame(this.handleAnimationFrame);
 					}
 				});
@@ -1760,7 +1941,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.decodedSounds.forEach((decodedSound, index) => {
 					if (decodedSound != undefined) {
 						this.samplePlayers[index] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-						
+
 						this.samplePlayers[index].reversed = presetToLoad[index].reversed;
 
 						// On récupère les leftTrim et rightTrim du preset
@@ -1771,13 +1952,28 @@ export default class SamplerHTMLElement extends HTMLElement {
 						// On récupère les effets du preset
 						this.samplePlayers[index].effects.volumeGain = presetToLoad[index].effects.volumeGain;
 						this.samplePlayers[index].effects.pan = presetToLoad[index].effects.pan;
+
 						this.samplePlayers[index].effects.tone = presetToLoad[index].effects.tone;
 
-						// this.samplePlayers[index].effects.attackValue = presetToLoad[index].effects.attackValue;
-						// this.samplePlayers[index].effects.decayValue = presetToLoad[index].effects.decayValue;
-						// this.samplePlayers[index].effects.sustainValue = presetToLoad[index].effects.sustainValue;
-						// this.samplePlayers[index].effects.releaseValue = presetToLoad[index].effects.releaseValue;
+						this.samplePlayers[index].effects.toneValue = presetToLoad[index].effects.toneValue;
+
+
+						this.samplePlayers[index].pitchValue = presetToLoad[index].pitchValue;
+						this.samplePlayers[index].effects.pitchRate = presetToLoad[index].effects.pitchRate;
+
+						//adsr presets
+						this.samplePlayers[index].effects.attackValue = presetToLoad[index].effects.attackValue;
+						this.samplePlayers[index].effects.decayValue = presetToLoad[index].effects.decayValue;
+						this.samplePlayers[index].effects.sustainValue = presetToLoad[index].effects.sustainValue;
+						this.samplePlayers[index].effects.releaseValue = presetToLoad[index].effects.releaseValue;
+						//enable or disable adsr
+						this.samplePlayers[index].enableAdsr = presetToLoad[index].effects.enableAdsr;
+
+
 						SamplerHTMLElement.name[index] = presetToLoad[index].name;
+
+						//modifier ou non les defaultName si l'on sauvegarde un preset
+						SamplerHTMLElement.defaultName[index] = presetToLoad[index].name;
 
 						// Reverse le son si il est inversé
 						if (this.samplePlayers[index].reversed) {
@@ -1902,7 +2098,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.setAllButtonDefaultText();
 
 		// On reset le nom du son
-		this.shadowRoot.querySelector('#soundName').innerHTML = "Waveform";
+		this.shadowRoot.querySelector('#labelSampleName').innerHTML = "Waveform";
 
 		// On charge les nouveaux sons
 		this.loadSounds(presetValue);
@@ -1978,19 +2174,24 @@ export default class SamplerHTMLElement extends HTMLElement {
 							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-							
+							pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+
+
 							// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 							effects: {
 								volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
 								pan: Math.round(samplePlayer.effects.pan * 100) / 100,
 								tone: Math.round(samplePlayer.effects.tone * 100) / 100,
-								
+								toneValue: Math.round(samplePlayer.effects.toneValue * 100) / 100,
+
+								pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
+
 								attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
 								decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
 								sustainValue: Math.round(samplePlayer.effects.sustainValue * 100) / 100,
 								releaseValue: Math.round(samplePlayer.effects.releaseValue * 100) / 100,
+								enableAdsr: samplePlayer.enableAdsr,
 							}
-							
 						}
 					}
 				});
@@ -2033,16 +2234,22 @@ export default class SamplerHTMLElement extends HTMLElement {
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
+						pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+
 						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 						effects: {
 							volumeGain: Math.round(samplePlayer.effects.volumeGain * 100) / 100,
 							pan: Math.round(samplePlayer.effects.pan * 100) / 100,
 							tone: Math.round(samplePlayer.effects.tone * 100) / 100,
-							
+							toneValue: Math.round(samplePlayer.effects.toneValue * 100) / 100,
+
+							pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
+
 							attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
 							decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
 							sustainValue: Math.round(samplePlayer.effects.sustainValue * 100) / 100,
 							releaseValue: Math.round(samplePlayer.effects.releaseValue * 100) / 100,
+							enableAdsr: samplePlayer.enableAdsr,
 						}
 					}
 				}
@@ -2330,6 +2537,11 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 	};
 
+	removeAllKeyboardPress = () => {
+		document.onkeydown = null;
+		document.onkeyup = null;
+	};
+
 
 	setupMidiListeners(audioNode) {
 		const wamNode = audioNode._wamNode;
@@ -2341,7 +2553,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		//si on écoute pas les bindings (faire un if)
 		midiEvents.forEach(message => {
-			
+
 			if (message.event[0] == MIDI.NOTE_ON) {
 				let midiNote = message.event[1]
 				let velocity = message.event[2];
@@ -2366,47 +2578,46 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const samplePlayer = this.player;
 		console.log("controlChange", controlId, ccValue)
 
-		if(controlId == this.controlBindings.get('volume')) {
-			console.log("test");
-			samplePlayer.effects.volumeGain = parseFloat(ccValue/127);
-			this.shadowRoot.querySelector('#knob1').value = parseFloat(ccValue/127);
+		if (controlId == this.controlBindings.get('volume')) {
+			samplePlayer.effects.volumeGain = parseFloat(ccValue / 127);
+			this.shadowRoot.querySelector('#knob1').value = parseFloat(ccValue / 127);
 		}
-		if(controlId == this.controlBindings.get('pan')) {
-			samplePlayer.effects.pan = parseFloat((ccValue/127) * 2 - 1);
-			this.shadowRoot.querySelector('#knob2').value = parseFloat((ccValue/127) * 2 - 1);
-		}
-
-		if(controlId ==  this.controlBindings.get('tone')) {
-			samplePlayer.effects.tone = parseFloat((ccValue/127) * 2 - 1);
-			this.shadowRoot.querySelector('#knob3').value = parseFloat((ccValue/127) * 2 - 1);
+		if (controlId == this.controlBindings.get('pan')) {
+			samplePlayer.effects.pan = parseFloat((ccValue / 127) * 2 - 1);
+			this.shadowRoot.querySelector('#knob2').value = parseFloat((ccValue / 127) * 2 - 1);
 		}
 
-		if(controlId == this.controlBindings.get('pitch')) {
-			 samplePlayer.pitchValue = parseInt(((ccValue/127) * 2 - 1) * 24);
-			 //console.log("pitch value : " + samplePlayer.pitchValue);
-			 samplePlayer.effects.pitchRate = 2 ** (samplePlayer.pitchValue/12);
-			this.shadowRoot.querySelector('#knobPitch').value = parseFloat(((ccValue/127) * 2 - 1) * 24);
+		if (controlId == this.controlBindings.get('tone')) {
+			samplePlayer.effects.tone = parseFloat((ccValue / 127) * 2 - 1);
+			this.shadowRoot.querySelector('#knob3').value = parseFloat((ccValue / 127) * 2 - 1);
+		}
+
+		if (controlId == this.controlBindings.get('pitch')) {
+			samplePlayer.pitchValue = parseInt(((ccValue / 127) * 2 - 1) * 24);
+			//console.log("pitch value : " + samplePlayer.pitchValue);
+			samplePlayer.effects.pitchRate = 2 ** (samplePlayer.pitchValue / 12);
+			this.shadowRoot.querySelector('#knobPitch').value = parseFloat(((ccValue / 127) * 2 - 1) * 24);
 		}
 
 		//adsr
-		if(controlId == this.controlBindings.get('attack')) {
-			samplePlayer.effects.attackValue = parseFloat((ccValue/127) * 2);
-			this.shadowRoot.querySelector('#knobAttack').value = parseFloat((ccValue/127)) * 2;
+		if (controlId == this.controlBindings.get('attack')) {
+			samplePlayer.effects.attackValue = parseFloat((ccValue / 127) * 2);
+			this.shadowRoot.querySelector('#knobAttack').value = parseFloat((ccValue / 127)) * 2;
 		}
 
-		if(controlId == this.controlBindings.get('decay')) {
-			samplePlayer.effects.decayValue = parseFloat((ccValue/127));
-			this.shadowRoot.querySelector('#knobDecay').value = parseFloat((ccValue/127));
+		if (controlId == this.controlBindings.get('decay')) {
+			samplePlayer.effects.decayValue = parseFloat((ccValue / 127));
+			this.shadowRoot.querySelector('#knobDecay').value = parseFloat((ccValue / 127));
 		}
 
-		if(controlId == this.controlBindings.get('sustain')) {
-			samplePlayer.effects.sustainValue = parseFloat((ccValue/127));
-			this.shadowRoot.querySelector('#knobSustain').value = parseFloat((ccValue/127));
+		if (controlId == this.controlBindings.get('sustain')) {
+			samplePlayer.effects.sustainValue = parseFloat((ccValue / 127));
+			this.shadowRoot.querySelector('#knobSustain').value = parseFloat((ccValue / 127));
 		}
 
-		if(controlId == this.controlBindings.get('release')) {
-			samplePlayer.effects.releaseValue = parseFloat((ccValue/127) * 2);
-			this.shadowRoot.querySelector('#knobRelease').value = parseFloat((ccValue/127)) * 2;
+		if (controlId == this.controlBindings.get('release')) {
+			samplePlayer.effects.releaseValue = parseFloat((ccValue / 127) * 2);
+			this.shadowRoot.querySelector('#knobRelease').value = parseFloat((ccValue / 127)) * 2;
 		}
 	}
 
@@ -2415,6 +2626,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const padIndex = note - 60; // 60 is C3
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).click();
+		this.releaseTrig = false;
+		console.log("test 1 : " + this.releaseTrig);
 	}
 
 	noteOff(note, tickStartTime) {
@@ -2422,6 +2635,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const padIndex = note - 60;
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).classList.remove('active');
+		this.releaseTrig = true;
+		console.log("test 2 : " + this.releaseTrig);
 	}
 
 	// name of the custom HTML element associated
