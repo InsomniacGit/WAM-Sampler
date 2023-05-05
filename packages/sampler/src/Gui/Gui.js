@@ -2442,7 +2442,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		padButton.classList.remove('active');
 		this.player = this.samplePlayers[padIndex];
 		if (!this.player) return;
-		this.player.releaseEnv();
+		if (this.player.enableAdsr) {
+			this.player.releaseEnv();
+		};
 	}
 
 	setKeyboardPress() {
