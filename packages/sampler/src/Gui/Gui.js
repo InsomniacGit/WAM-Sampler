@@ -804,8 +804,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.explorerSamplePlayers = [];
 
 		this.mousePos = { x: 0, y: 0 };
-
-		this.releaseTrig = false;
 	}
 
 	handleAnimationFrame = () => {
@@ -1745,33 +1743,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 			console.log('pad' + index + ' clicked');
 			//console.log('defaultName :' + SamplerHTMLElement.defaultName[index]);
 			//console.log('name :' + SamplerHTMLElement.name[index]);
-			// set effects knobs to current values
-			this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
-			this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
-			this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
 
-			this.shadowRoot.querySelector('#knobPitch').value = this.player.pitchValue;
-
-			//adsr
-			this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;
-			this.shadowRoot.querySelector('#knobDecay').value = this.player.effects.decayValue;
-			this.shadowRoot.querySelector('#knobSustain').value = this.player.effects.sustainValue;
-			this.shadowRoot.querySelector('#knobRelease').value = this.player.effects.releaseValue;
-
-			const envBtn = this.shadowRoot.querySelector('#envBtn');
-			const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
-			envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
-
-			if (!this.player.enableAdsr) {
-				envBtn.innerHTML = 'Enable';
-				envBtn.classList.remove('choose');
-				envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
-			} else {
-				envBtn.innerHTML = 'Disable';
-				envBtn.classList.add('choose');
-				envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
-			}
-
+			this.setKnobsEffects();
 
 			// Affiche le nom du son dans le div sans le <button>
 			this.shadowRoot.querySelector('#labelSampleName').innerHTML = b.innerHTML.split('<')[0];
@@ -1781,9 +1754,6 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.player.stop();
 			this.player.play();
 
-			// if (this.releaseTrig) {
-			// 	this.player.releaseEnv();
-			// }
 
 			//this.player.playReverse();
 
@@ -1809,9 +1779,38 @@ export default class SamplerHTMLElement extends HTMLElement {
 			// On ajoute la class .selected au bouton cliqué
 			b.classList.add('selected');
 
-			//permet de renommer le sample
+			//on peut maitenant renommer le sample
 			this.setLabel(index, b);
 		};
+	}
+
+	setKnobsEffects() {
+		// set effects knobs to current values
+		this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
+		this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
+		this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
+
+		this.shadowRoot.querySelector('#knobPitch').value = this.player.pitchValue;
+
+		//adsr
+		this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;
+		this.shadowRoot.querySelector('#knobDecay').value = this.player.effects.decayValue;
+		this.shadowRoot.querySelector('#knobSustain').value = this.player.effects.sustainValue;
+		this.shadowRoot.querySelector('#knobRelease').value = this.player.effects.releaseValue;
+
+		const envBtn = this.shadowRoot.querySelector('#envBtn');
+		const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
+		envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
+
+		if (!this.player.enableAdsr) {
+			envBtn.innerHTML = 'Enable';
+			envBtn.classList.remove('choose');
+			envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
+		} else {
+			envBtn.innerHTML = 'Disable';
+			envBtn.classList.add('choose');
+			envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
+		}
 	}
 
 
@@ -2383,72 +2382,127 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 	}
 
+	noteOnKey = (padButton) => {
+		const padIndex = parseInt(padButton.id.substring(3));
+		// console.log(padButton);
+		// console.log("index pad key : " + padIndex);
+		this.player = this.samplePlayers[padIndex];
+		if(!this.player) return;
+		
+		// Affiche le nom du son dans le div sans le <button>
+		this.shadowRoot.querySelector('#labelSampleName').innerHTML = padButton.innerHTML.split('<')[0];
+
+		this.setKnobsEffects();
+
+		this.player.drawWaveform();
+
+		this.player.stop();
+		this.player.play();
+
+
+		//pad GUI
+		padButton.classList.add('active');
+
+		// On enleve la class .selected de tous les boutons
+		const buttons = this.shadowRoot.querySelectorAll('.padButton');
+		buttons.forEach((button) => {
+			button.classList.remove('selected');
+		});
+
+		// On enleve la class .selected de tous les button de l'explorer
+		const buttonsExplorer = this.shadowRoot.querySelectorAll('.resultButton');
+		buttonsExplorer.forEach((button) => {
+			button.classList.remove('selected');
+		});
+
+		// On ajoute la class .selected au bouton cliqué
+		padButton.classList.add('selected');
+
+		//on peut maitenant renommer le sample
+		this.setLabel(padIndex, padButton);
+	}
+
+	noteOffKey = (padButton) => {
+		const padIndex = parseInt(padButton.id.substring(3));
+		if(!padButton) return;
+		padButton.classList.remove('active');
+		this.player = this.samplePlayers[padIndex];
+		if(!this.player) return;
+		this.player.releaseEnv();
+	}
+
 	setKeyboardPress() {
 		document.onkeydown = (e) => {
+			//evite la répétition de l'évènement -> sample qui joue en boucle
+			if (e.repeat) {
+				e.preventDefault();
+				return;
+			}
 			switch (e.key) {
 				case '1':
 				case '&':
-					this.shadowRoot.querySelector('#pad12').click();
+					//this.shadowRoot.querySelector('#pad12').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad12'));
 					break;
 				case '2':
 				case 'é':
-					this.shadowRoot.querySelector('#pad13').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad13'));
 					break;
 				case '3':
 				case '"':
-					this.shadowRoot.querySelector('#pad14').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad14'));
 					break;
 				case '4':
 				case "'":
-					this.shadowRoot.querySelector('#pad15').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad15'));
 					break;
 				case 'A':
 				case 'a':
-					this.shadowRoot.querySelector('#pad8').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad8'));
 					break;
 				case 'Z':
 				case 'z':
-					this.shadowRoot.querySelector('#pad9').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad9'));
 					break;
 				case 'E':
 				case 'e':
-					this.shadowRoot.querySelector('#pad10').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad10'));
 					break;
 				case 'R':
 				case 'r':
-					this.shadowRoot.querySelector('#pad11').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad11'));
 					break;
 				case 'Q':
 				case 'q':
-					this.shadowRoot.querySelector('#pad4').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad4'));
 					break;
 				case 'S':
 				case 's':
-					this.shadowRoot.querySelector('#pad5').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad5'));
 					break;
 				case 'D':
 				case 'd':
-					this.shadowRoot.querySelector('#pad6').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad6'));
 					break;
 				case 'F':
 				case 'f':
-					this.shadowRoot.querySelector('#pad7').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad7'));
 					break;
 				case 'W':
 				case 'w':
-					this.shadowRoot.querySelector('#pad0').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad0'));
 					break;
 				case 'X':
 				case 'x':
-					this.shadowRoot.querySelector('#pad1').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad1'));
 					break;
 				case 'C':
 				case 'c':
-					this.shadowRoot.querySelector('#pad2').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad2'));
 					break;
 				case 'V':
 				case 'v':
-					this.shadowRoot.querySelector('#pad3').click();
+					this.noteOnKey(this.shadowRoot.querySelector('#pad3'));
 					break;
 			}
 		};
@@ -2457,67 +2511,68 @@ export default class SamplerHTMLElement extends HTMLElement {
 			switch (e.key) {
 				case '1':
 				case '&':
-					this.shadowRoot.querySelector('#pad12').classList.remove('active');
+					//this.shadowRoot.querySelector('#pad12').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad12'));
 					break;
 				case '2':
 				case 'é':
-					this.shadowRoot.querySelector('#pad13').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad13'));
 					break;
 				case '3':
 				case '"':
-					this.shadowRoot.querySelector('#pad14').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad14'));
 					break;
 				case '4':
 				case "'":
-					this.shadowRoot.querySelector('#pad15').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad15'));
 					break;
 				case 'A':
 				case 'a':
-					this.shadowRoot.querySelector('#pad8').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad8'));
 					break;
 				case 'Z':
 				case 'z':
-					this.shadowRoot.querySelector('#pad9').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad9'));
 					break;
 				case 'E':
 				case 'e':
-					this.shadowRoot.querySelector('#pad10').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad10'));
 					break;
 				case 'R':
 				case 'r':
-					this.shadowRoot.querySelector('#pad11').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad11'));
 					break;
 				case 'Q':
 				case 'q':
-					this.shadowRoot.querySelector('#pad4').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad4'));
 					break;
 				case 'S':
 				case 's':
-					this.shadowRoot.querySelector('#pad5').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad5'));
 					break;
 				case 'D':
 				case 'd':
-					this.shadowRoot.querySelector('#pad6').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad6'));
 					break;
 				case 'F':
 				case 'f':
-					this.shadowRoot.querySelector('#pad7').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad7'));
 					break;
 				case 'W':
 				case 'w':
-					this.shadowRoot.querySelector('#pad0').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad0'));
 					break;
 				case 'X':
 				case 'x':
-					this.shadowRoot.querySelector('#pad1').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad1'));
 					break;
 				case 'C':
 				case 'c':
-					this.shadowRoot.querySelector('#pad2').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad2'));
 					break;
 				case 'V':
 				case 'v':
-					this.shadowRoot.querySelector('#pad3').classList.remove('active');
+					this.noteOffKey(this.shadowRoot.querySelector('#pad3'));
 					break;
 			}
 		};
@@ -2544,21 +2599,23 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 
 	setupMidiListeners(audioNode) {
+		console.log("setupMIDIEvents called at " + Date.now());
 		const wamNode = audioNode._wamNode;
 		wamNode.addEventListener('wam-midi', (e) => this.processMIDIEvents([{ event: e.detail.data.bytes, time: 0 }]));
 	}
 
 	processMIDIEvents(midiEvents) {
-
-
+		console.log("processMIDIEvents called at " + Date.now());
+		console.log("midiEvents:", midiEvents);
 		//si on écoute pas les bindings (faire un if)
 		midiEvents.forEach(message => {
 
 			if (message.event[0] == MIDI.NOTE_ON) {
 				let midiNote = message.event[1]
 				let velocity = message.event[2];
-				if (velocity) this.noteOn(midiNote, message.time)
-				else this.noteOff(midiNote, message.time)
+				this.noteOn(midiNote, message.time);
+				// if (velocity > 0) this.noteOn(midiNote, message.time)
+				// else this.noteOff(midiNote, message.time)
 			} else if (message.event[0] == MIDI.NOTE_OFF) {
 				let midiNote = message.event[1]
 				this.noteOff(midiNote, message.time)
@@ -2568,7 +2625,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 				this.controlChange(controlId, ccValue)
 			}
 		});
-		console.log(midiEvents[0])
+		//console.log(midiEvents[0])
 		//si on écoute les bindings
 		// dans la map on va par exemple changer le binding du volume en récupérant la valeur d'un autre controleur
 	}
@@ -2621,13 +2678,52 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 	}
 
+
+
 	noteOn(note, tickStartTime) {
 		console.log("noteOn", note, tickStartTime)
 		const padIndex = note - 60; // 60 is C3
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
-		this.shadowRoot.querySelector('#pad' + padIndex).click();
-		this.releaseTrig = false;
-		console.log("test 1 : " + this.releaseTrig);
+		const padButton = this.shadowRoot.querySelector('#pad' + padIndex);
+
+		//console.log(this.samplePlayers[padIndex]);
+		this.player = this.samplePlayers[padIndex];
+		if (!this.player) return;
+		// Affiche le nom du son dans le div sans le <button>
+		this.shadowRoot.querySelector('#labelSampleName').innerHTML = padButton.innerHTML.split('<')[0];
+
+		this.setKnobsEffects();
+
+		this.player.drawWaveform();
+
+		this.player.stop();
+		this.player.play();
+
+
+		//pad GUI
+		padButton.classList.add('active');
+
+		// On enleve la class .selected de tous les boutons
+		const buttons = this.shadowRoot.querySelectorAll('.padButton');
+		buttons.forEach((button) => {
+			button.classList.remove('selected');
+		});
+
+		// On enleve la class .selected de tous les button de l'explorer
+		const buttonsExplorer = this.shadowRoot.querySelectorAll('.resultButton');
+		buttonsExplorer.forEach((button) => {
+			button.classList.remove('selected');
+		});
+
+		// On ajoute la class .selected au bouton cliqué
+		padButton.classList.add('selected');
+
+		//on peut maitenant renommer le sample
+		this.setLabel(padIndex, padButton);
+
+		//padButton.click();
+		//console.log(padIndex);
+
 	}
 
 	noteOff(note, tickStartTime) {
@@ -2635,8 +2731,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const padIndex = note - 60;
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).classList.remove('active');
-		this.releaseTrig = true;
-		console.log("test 2 : " + this.releaseTrig);
+		this.player = this.samplePlayers[padIndex];
+		if(!this.player) return;
+		this.player.releaseEnv();
 	}
 
 	// name of the custom HTML element associated

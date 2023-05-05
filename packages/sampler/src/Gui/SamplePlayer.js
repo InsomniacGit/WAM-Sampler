@@ -107,7 +107,7 @@ export default class SamplePlayer {
 
     releaseEnv() {
         if (this.env) {
-            this.env.release(this.ctx.currentTime + parseFloat(this.downtime));
+            this.env.release(this.ctx.currentTime + this.effects.opts.release);
         }
     }
 
