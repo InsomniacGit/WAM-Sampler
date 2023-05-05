@@ -1096,6 +1096,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		let stockPresetNames = [];
 
+
 		// console.log("name : " + SamplerHTMLElement.name[index]);
 		// console.log("default name : " + SamplerHTMLElement.defaultName[index]);
 		// console.log("default name tableau : " + SamplerHTMLElement.defaultName);
@@ -1117,58 +1118,65 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// else {
 		// 	stockPresetNames[index] = SamplerHTMLElement.name[index];
 		// }
-
-		if (b.classList.contains('resultButton')) {
-			//disable the double click on the result button
+		if (!b) {
 			label.ondblclick = () => {
 				return;
 			}
-
 		}
+		else {
 
-		if (b.classList.contains('selected') && (b.classList.contains('padbutton')) || (b.classList.contains('padButton'))) {
+			if (b.classList.contains('resultButton')) {
+				//disable the double click on the result button
+				label.ondblclick = () => {
+					return;
+				}
 
-			label.ondblclick = () => {
-				label.style.display = 'none';
-				input.value = label.textContent;
-				input.style.display = 'inline-block';
-				input.style.outline = "none";
-				input.focus();
 			}
 
-			input.onblur = () => {
-				label.textContent = input.value;
-				if (label.textContent == "") {
-					label.textContent = SamplerHTMLElement.defaultName[index];
+			if (b.classList.contains('selected') && (b.classList.contains('padbutton')) || (b.classList.contains('padButton'))) {
+
+				label.ondblclick = () => {
+					label.style.display = 'none';
+					input.value = label.textContent;
+					input.style.display = 'inline-block';
+					input.style.outline = "none";
+					input.focus();
 				}
-				SamplerHTMLElement.name[index] = label.textContent;
-				b.innerHTML = SamplerHTMLElement.name[index];
-				//b.innerHTML = label.textContent;
 
-				// Ajoute un petit bouton pour supprimer le sample en haut à droite
-				const deleteSample = document.createElement('button');
-				deleteSample.classList.add('deleteSample');
-				deleteSample.id = 'deleteSample' + index;
-				deleteSample.innerHTML = 'X';
-				deleteSample.onclick = (e) => {
-					this.deleteSample(index);
-				}
-				b.appendChild(deleteSample);
-
-				label.style.display = "inline-block";
-				input.style.display = "none";
-				this.setKeyboardPress();
-			}
-
-			input.addEventListener('focus', (e) => {
-				this.removeAllKeyboardPress();
-				// si l'on presse la touche 'Enter'
-				input.addEventListener('keyup', (e) => {
-					if (e.keyCode === 13) {
-						input.blur();
+				input.onblur = () => {
+					label.textContent = input.value;
+					if (label.textContent == "") {
+						label.textContent = SamplerHTMLElement.defaultName[index];
 					}
+					SamplerHTMLElement.name[index] = label.textContent;
+					b.innerHTML = SamplerHTMLElement.name[index];
+					//b.innerHTML = label.textContent;
+
+					// Ajoute un petit bouton pour supprimer le sample en haut à droite
+					const deleteSample = document.createElement('button');
+					deleteSample.classList.add('deleteSample');
+					deleteSample.id = 'deleteSample' + index;
+					deleteSample.innerHTML = 'X';
+					deleteSample.onclick = (e) => {
+						this.deleteSample(index);
+					}
+					b.appendChild(deleteSample);
+
+					label.style.display = "inline-block";
+					input.style.display = "none";
+					this.setKeyboardPress();
+				}
+
+				input.addEventListener('focus', (e) => {
+					this.removeAllKeyboardPress();
+					// si l'on presse la touche 'Enter'
+					input.addEventListener('keyup', (e) => {
+						if (e.keyCode === 13) {
+							input.blur();
+						}
+					});
 				});
-			});
+			}
 		}
 
 	}
@@ -1899,6 +1907,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			// On charge les nouveaux sons
 			this.loadSounds(presetValue);
+			this.setLabel();
+
+
 		}
 	}
 
@@ -2061,6 +2072,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		SamplerHTMLElement.URLs = [];
 		SamplerHTMLElement.name = [];
 
+
 		// On récupère le preset
 		const preset = this.shadowRoot.querySelector('#selectPreset');
 
@@ -2098,9 +2110,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		// On reset le nom du son
 		this.shadowRoot.querySelector('#labelSampleName').innerHTML = "Waveform";
-
 		// On charge les nouveaux sons
 		this.loadSounds(presetValue);
+		this.setLabel();
+
 	}
 
 
@@ -2141,6 +2154,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 	createPreset = () => {
 		// Duplique le preset actuel
 		const createPreset = this.shadowRoot.querySelector('#createPreset');
+
 
 		createPreset.onclick = () => {
 			// Saisie du nom du preset
@@ -2387,8 +2401,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// console.log(padButton);
 		// console.log("index pad key : " + padIndex);
 		this.player = this.samplePlayers[padIndex];
-		if(!this.player) return;
-		
+		if (!this.player) return;
+
 		// Affiche le nom du son dans le div sans le <button>
 		this.shadowRoot.querySelector('#labelSampleName').innerHTML = padButton.innerHTML.split('<')[0];
 
@@ -2424,10 +2438,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 	noteOffKey = (padButton) => {
 		const padIndex = parseInt(padButton.id.substring(3));
-		if(!padButton) return;
+		if (!padButton) return;
 		padButton.classList.remove('active');
 		this.player = this.samplePlayers[padIndex];
-		if(!this.player) return;
+		if (!this.player) return;
 		this.player.releaseEnv();
 	}
 
@@ -2732,7 +2746,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).classList.remove('active');
 		this.player = this.samplePlayers[padIndex];
-		if(!this.player) return;
+		if (!this.player) return;
 		this.player.releaseEnv();
 	}
 
