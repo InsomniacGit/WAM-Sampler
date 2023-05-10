@@ -717,7 +717,7 @@ let template = `
 
 			<div id="ADSR">
 				<div class="knobEnv" id="adsrAttack">
-					<webaudio-knob  id="knobAttack" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.2" midilearn="1" tooltip="Attack %.2f"></webaudio-knob>
+					<webaudio-knob  id="knobAttack" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.2" midilearn="1" tooltip="Attack %.2f"></webaudio-knob>
 					<label for="knobAttack" class="adsrClass">Attack</label>
 				</div>
 				<div class="knobEnv" id="adsrDecay">
@@ -729,7 +729,7 @@ let template = `
 				<label for="knobSustain" class="adsrClass">Sustain</label>
 				</div>
 				<div class="knobEnv" id="adsrRelease">
-				<webaudio-knob  id="knobRelease" height="30" width="30" sprites="100" min="0" max="2" step="0.01" value="0.3" midilearn="1" tooltip="Release %.2f"></webaudio-knob>
+				<webaudio-knob  id="knobRelease" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.3" midilearn="1" tooltip="Release %.2f"></webaudio-knob>
 				<label for="knobRelease" class="adsrClass">Release</label>
 				</div>
 				<div>
@@ -928,12 +928,17 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		});
 
+		// this.shadowRoot.querySelector('#knobPitch').addEventListener('input', (e) => {
+		// 	if (this.player == undefined) return;
+		// 	const pitchValue = parseInt(e.target.value);
+		// 	this.player.pitchValue = pitchValue;
+		// 	this.player.effects.pitchRate = 2 ** (pitchValue / 12);
+		// });
+
 		this.shadowRoot.querySelector('#knobPitch').addEventListener('input', (e) => {
 			if (this.player == undefined) return;
-			const pitchValue = parseInt(e.target.value);
-			this.player.pitchValue = pitchValue;
-			this.player.effects.pitchRate = 2 ** (pitchValue / 12);
-		});
+			this.player.semitones = parseInt(e.target.value);
+		})
 
 		//button reverse
 		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
@@ -945,6 +950,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
 		});
+
 
 		//envelope ADSR
 
@@ -1751,8 +1757,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 			console.log('pad' + index + ' clicked');
 			//console.log('defaultName :' + SamplerHTMLElement.defaultName[index]);
 			//console.log('name :' + SamplerHTMLElement.name[index]);
-
+	
 			this.setKnobsEffects();
+
 
 			// Affiche le nom du son dans le div sans le <button>
 			this.shadowRoot.querySelector('#labelSampleName').innerHTML = b.innerHTML.split('<')[0];
@@ -1798,7 +1805,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
 		this.shadowRoot.querySelector('#knob3').value = this.player.effects.toneValue;
 
-		this.shadowRoot.querySelector('#knobPitch').value = this.player.pitchValue;
+		//this.shadowRoot.querySelector('#knobPitch').value = this.player.pitchValue;
+		//pitch
+		this.shadowRoot.querySelector('#knobPitch').value = this.player.semitones;
 
 		//adsr
 		this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;
@@ -1967,9 +1976,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 						this.samplePlayers[index].effects.toneValue = presetToLoad[index].effects.toneValue;
 
-
-						this.samplePlayers[index].pitchValue = presetToLoad[index].pitchValue;
-						this.samplePlayers[index].effects.pitchRate = presetToLoad[index].effects.pitchRate;
+						this.samplePlayers[index].semitones = presetToLoad[index].semitones;
+						//this.samplePlayers[index].pitchValue = presetToLoad[index].pitchValue;
+						//this.samplePlayers[index].effects.pitchRate = presetToLoad[index].effects.pitchRate;
+			
 
 						//adsr presets
 						this.samplePlayers[index].effects.attackValue = presetToLoad[index].effects.attackValue;
@@ -2187,7 +2197,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 							leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 							rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-							pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+							//pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+							semitones: Math.round(samplePlayer.semitones * 100) / 100,
 
 
 							// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
@@ -2197,7 +2208,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 								tone: Math.round(samplePlayer.effects.tone * 100) / 100,
 								toneValue: Math.round(samplePlayer.effects.toneValue * 100) / 100,
 
-								pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
+								//pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
 
 								attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
 								decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
@@ -2247,7 +2258,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 						leftTrim: Math.round(samplePlayer.leftTrimBar.x),
 						rightTrim: Math.round(samplePlayer.rightTrimBar.x),
 
-						pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+						//pitchValue: Math.round(samplePlayer.pitchValue * 100) / 100,
+
+						semitones : Math.round(samplePlayer.semitones * 100) / 100,
 
 						// Récupère les effets de chaque samplePlayer (volumeGain, pan, tone) arrondis à 2 chiffres après la virgule
 						effects: {
@@ -2256,7 +2269,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 							tone: Math.round(samplePlayer.effects.tone * 100) / 100,
 							toneValue: Math.round(samplePlayer.effects.toneValue * 100) / 100,
 
-							pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
+							//pitchRate: Math.round(samplePlayer.effects.pitchRate * 100) / 100,
 
 							attackValue: Math.round(samplePlayer.effects.attackValue * 100) / 100,
 							decayValue: Math.round(samplePlayer.effects.decayValue * 100) / 100,
@@ -2665,11 +2678,16 @@ export default class SamplerHTMLElement extends HTMLElement {
 			this.shadowRoot.querySelector('#knob3').value = parseFloat((ccValue / 127) * 2 - 1);
 		}
 
+		// if (controlId == this.controlBindings.get('pitch')) {
+		// 	samplePlayer.pitchValue = parseInt(((ccValue / 127) * 2 - 1) * 24);
+		// 	//console.log("pitch value : " + samplePlayer.pitchValue);
+		// 	samplePlayer.effects.pitchRate = 2 ** (samplePlayer.pitchValue / 12);
+		// 	this.shadowRoot.querySelector('#knobPitch').value = parseFloat(((ccValue / 127) * 2 - 1) * 24);
+		// }
+
 		if (controlId == this.controlBindings.get('pitch')) {
-			samplePlayer.pitchValue = parseInt(((ccValue / 127) * 2 - 1) * 24);
-			//console.log("pitch value : " + samplePlayer.pitchValue);
-			samplePlayer.effects.pitchRate = 2 ** (samplePlayer.pitchValue / 12);
-			this.shadowRoot.querySelector('#knobPitch').value = parseFloat(((ccValue / 127) * 2 - 1) * 24);
+			samplePlayer.semitones = parseInt(((ccValue / 127) * 2 - 1) * 24);
+			this.shadowRoot.querySelector('#knobPitch').value = parseInt(((ccValue / 127) * 2 - 1) * 24);
 		}
 
 		//adsr
@@ -2748,7 +2766,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
 		this.shadowRoot.querySelector('#pad' + padIndex).classList.remove('active');
 		this.player = this.samplePlayers[padIndex];
-		if (!this.player) return;
+		if ((!this.player) || (!this.player.enableAdsr)) { return };
 		this.player.releaseEnv();
 	}
 

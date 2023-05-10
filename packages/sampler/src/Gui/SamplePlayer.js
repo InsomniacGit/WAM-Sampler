@@ -17,6 +17,7 @@ export default class SamplePlayer {
         this.downtime;
 
         this.pitchValue = 0;
+        this.semitones = 0;
         this.enableAdsr = false;
 
         // we add an overlay canvas on top of the waveform canvas
@@ -46,11 +47,20 @@ export default class SamplePlayer {
 
         this.bufferSource = this.ctx.createBufferSource();
         this.bufferSource.buffer = this.decodedSound;
-        this.bufferSource.playbackRate.value = this.effects.pitchRate;
+        //this.bufferSource.playbackRate.value = this.effects.pitchRate;
+
+        //création d'un nouveau buffer avec une nouvelle durée avec le pitch modifié 
+        if (this.semitones) {
+            this.newBuffer = this.pitchedSound(this.bufferSource.buffer);
+            this.bufferSource = this.ctx.createBufferSource();
+            this.bufferSource.buffer = this.newBuffer;
+        }
 
         this.inputNode = this.bufferSource;
 
         let bufferDuration = this.bufferSource.buffer.duration;
+        // let newBufferDuration = bufferDuration / this.bufferSource.playbackRate.value;
+        // bufferDuration = newBufferDuration;
 
         // console.log("buffer length : " + this.bufferSource.buffer.length);
         // console.log("buffer playbackRate : " + this.bufferSource.playbackRate.value);
@@ -139,18 +149,37 @@ export default class SamplePlayer {
         return newBuffer;
     }
 
-    newPitchSound(buffer, pitchRate) {
-        let newBuffer = this.ctx.createBuffer(
-            buffer.numberOfChannels,
-            buffer.length,
-            this.ctx.sampleRate
-        )
+    // newPitchSound(buffer, pitchRate) {
+    //     let newBuffer = this.ctx.createBuffer(
+    //         buffer.numberOfChannels,
+    //         buffer.length,
+    //         this.ctx.sampleRate
+    //     )
 
-        for (let i = 0; i < buffer.numberOfChannels; i++) {
-            let channelData = buffer.getChannelData(i);
-            newBuffer.copyToChannel(channelData, i)
-        };
+    //     for (let i = 0; i < buffer.numberOfChannels; i++) {
+    //         let channelData = buffer.getChannelData(i);
+    //         newBuffer.copyToChannel(channelData, i)
+    //     };
+    // }
+
+    pitchedSound(buffer) {
+        const ratio = Math.pow(2, -this.semitones / 12);
+        const length = buffer.length * ratio;
+        const repitchedBuffer = this.ctx.createBuffer(buffer.numberOfChannels, length, buffer.sampleRate);
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+            const inputData = buffer.getChannelData(channel);
+            const outputData = repitchedBuffer.getChannelData(channel);
+            for (let i = 0; i < length; i++) {
+                outputData[i] = inputData[Math.floor(i / ratio)];
+            }
+        }
+
+        this.waveformDrawer = new WaveformDrawer();
+        this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
+
+        return repitchedBuffer;
     }
+
 
     start() {
         this.bufferSource.start(0, this.leftTrimBar.startTime, this.trimmedDuration);
