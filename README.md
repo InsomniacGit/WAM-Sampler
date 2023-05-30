@@ -1,3 +1,8 @@
+This repo is a copy of https://github.com/webaudiomodules/wam-examples
+The only difference is that we have added the sampler to the packages folder.
+Please follow the instructions below before running the sampler.
+
+
 # WebAudioModules
 
 ## Structure
