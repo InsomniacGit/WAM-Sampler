@@ -48,6 +48,7 @@ export default class QuadrafuzzPlugin extends WebAudioModule {
 		// and shares the connect/disconnect methods, but it can be a graph
 		// of nodes.
 		const quadrafuzzNode = new QuadrafuzzNode(this.audioContext);
+		console.log(quadrafuzzNode);
 
 		const internalParamsConfig = {
 			// quadrafuzzNode.overdrives[0] is a waveshaper. When we call setLowGain(value) it will change

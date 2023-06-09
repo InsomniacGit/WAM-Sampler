@@ -6,7 +6,7 @@
 import CompositeAudioNode from '../../sdk-parammgr/src/CompositeAudioNode.js';
 
 // name is not so important here, the file Node.js is imported by the main plugin file (index.js)
-export default class SamplerNode extends CompositeAudioNode {
+export default class TunerNode extends CompositeAudioNode {
 	/**
 	 * @type {ParamMgrNode}
 	 */
@@ -28,38 +28,42 @@ export default class SamplerNode extends CompositeAudioNode {
 
 	/*  #########  Personnal code for the web audio graph  #########   */
 	createInitialNodes() {
+			//input
+			this.inputNode = this.context.createGain();
+
+			// pour test on met un oscillateur qui fait un LA 440
+			// this.osc = this.context.createOscillator();
+			// this.osc.frequency.value = 440;
+
+			this.ampNode = this.context.createGain();
+			this.ampNode.gain.value = 2;
+	
+			//analyser
+			this.analyser = this.context.createAnalyser();
+			this.analyser.fftSize = 2048;
+			this.bufferLength = this.analyser.frequencyBinCount;
+			this.dataArray = new Uint8Array(this.bufferLength);
+	
+			
 		// mandatory, will create defaul input and output
 		this.outputNode = this.context.createGain();
 	}
 
 
 	connectInitialNodes() {
+		//connect the nodes
+		this.connect(this.inputNode);
+		this.inputNode.connect(this.analyser);
+		this.analyser.connect(this.outputNode);
+
+		//connect the osc to analyser
+		//this.osc.connect(this.analyser);
+		//this.osc.start();
+
 		this._output =this.outputNode;
 	}
 
 	
-	play(samplePlayer) {
-		// on connecte le samplePlayer au graphe du noeud du plugin
-		// et on le démarre
-		samplePlayer.connect(this.outputNode);
-
-		//et on le joue
-		samplePlayer.start();
-	}
-
-	getState(){
-		console.log("getState currentPreset = " + this.currentPreset);
-		return {
-			presetName: this.currentPreset
-		};
-	}
-
-	setState(state){
-		console.log("setState currentPreset = " + state.presetName);
-		// demander à la GUI de loader le preset
-		this.gui.loadCompletePreset(state.presetName);
-
-	}
 	/**
 	 * Tools to build sounds
 	 */
