@@ -102,11 +102,11 @@ export default class EffectStack {
 	set tone(_tone) {
 		//if (!this.isInRange(_tone, -1, 1)) return;
 		if (_tone < 0) {
-			this.highShelfNode.gain.value = this.normalize(_tone, 0, 20);
+			this.highShelfNode.gain.value = this.normalize(_tone, 0, 30);
 			//console.log('highShelfNode gain : ' + this.highShelfNode.gain.value)
 		} 
 		else if (_tone > 0){
-			this.lowShelfNode.gain.value = this.normalize(_tone, 0, -20);
+			this.lowShelfNode.gain.value = this.normalize(_tone, 0, -30);
 			//console.log('lowShelfNode gain : ' + this.lowShelfNode.gain.value)
 		} 
 		else {

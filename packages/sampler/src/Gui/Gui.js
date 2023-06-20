@@ -1,4 +1,8 @@
 // https://github.com/g200kg/webaudio-controls/blob/master/webaudio-controls.js
+const WebAudioControlsOptions = {
+	useMidi:1,
+	preserveMidiLearn:1,
+  }
 import '../utils/webaudio-controls.js';
 import BufferLoader from './bufferLoader.js';
 import SamplePlayer from './SamplePlayer.js';
@@ -51,10 +55,14 @@ let style = `
 }
 
 #myCanvasOverlay {
-    border:1px solid black;
+    border:1px solid darkgray;
     position: absolute;
     z-index:5;
   }
+
+#myCanvas, #myCanvasOverlay {
+	border-radius: 2px;
+}
 
 #parameters {
     /* background-color: red; */
@@ -170,6 +178,7 @@ opacity: 0.8;
 
 .presetClass, .researchClass, .effectClass{
 	font-family: 'Share Tech Mono', monospace;
+	border-radius: 5px;
 }
 
 .effectClass {
@@ -241,30 +250,64 @@ opacity: 0.8;
 	position: absolute;
 	top: 5px;
 	left: 50px;
+	z-index: 2;
 }
 .padDiv {
 	width: 66.25px;
-	height: 78.75px;
+	height: 66.25px;
 }
 
 .padbutton {
     width: 66.25px;
     height: 66.25px;
-    border: 1px solid black;
+	padding : 0px;
+    border: 2px solid #888888;
+	border-top: none;
+	border-bottom-width: revert;
+	outline: none;
     background-color: #ccc;
-    color: black;
     cursor: pointer;
     font-size: 10px;
-	border-radius: 10px;
-	box-shadow: none;
+	border-radius: 12px;
+	box-shadow: -2px -6px 11px #A8FFBA, -2px -3px 5px #F6ECEB, -6px 0px 10px #F6ECEB, 2px 6px 11px #F6ECEB rgba(0, 0, 0, 0.2);
 	justify-content: center;
 	align-items: center;
 	position: relative;
-	overflow: hidden;
-	text-overflow: ellipsis;
+	cursor: pointer;
+	color: transparent;
 
 	font-family: 'Share Tech Mono', monospace;
 }
+
+.button_content{
+	box-sizing: border-box;
+	position: absolute;
+	top: 0px;
+	display: flex;
+	align-items: center;
+  	justify-content: center;
+	width: 100%;
+  	height: 100%;
+	padding: 2px;
+	box-shadow: inset 0px -7px 0px #A8FFBA, 0px -7px 0px lightgreen;
+	border-radius: 14px;
+	z-index: 1;
+	transition: 0.13s ease-in-out;
+}
+
+.button_text {
+	font-size: 10px;
+	transition: 0.13s ease-in-out;
+	position: relative;
+	transform: translate3d(0px, -4px, 0px);
+	margin: 0px;
+	padding: 0px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: black;
+}
+
+.
 
 .padactionbutton {
     font-family: courier;
@@ -279,7 +322,6 @@ opacity: 0.8;
 }
 
 .set {
-	border: 1px solid green;
 	background-color: lightgreen;
 }
 
@@ -288,9 +330,29 @@ opacity: 0.8;
 	background-color: red;
 }
 
+.active .button_content {
+	box-shadow: none;
+}
+
+.active .button_content .button_text {
+	transform: translate3d(0px, 0px, -20px);
+}
+
+.padbutton:active {
+	background-color: red;
+}
+
+.padbutton:active .button_content {
+	box-shadow: none;
+}
+
+.padbutton:active .button_content .button_text {
+	transform: translate3d(0px, 0px, -20px);
+}
+
 .selected {
-	border: 1px solid darkred;
-	box-shadow: 2px 2px 2px red, -2px -2px 2px red, 2px -2px 2px red, -2px 2px 2px red;
+	border: 3px solid red;
+	box-shadow: 1px 1px 1px red, -1px -1px 1px red, 1px -1px 1px red, -1px 1px 1px red;
 }
 
 #choice{
@@ -307,7 +369,7 @@ opacity: 0.8;
 	width: 90px;
 	height: 15px;
 	font-size: 10px;
-	border: none;
+	border: 1px solid black;
 	border-radius: 10px;
 }
 
@@ -658,7 +720,11 @@ let template = `
 			<progress class="padprogress" id="progress7" max="10" value="0"></progress>
 		</div>
 		<div id="p0" class="padDiv">
-			<button class="padbutton" id="pad0">W</button>
+			<button class="padbutton set" id="pad0">
+				<div class="button_content">
+					<p class="button_text">W</p>
+				</div>
+			</button>
 			<progress class="padprogress" id="progress0" max="10" value="0"></progress>
 		</div>
 		<div id="p1" class="padDiv">
@@ -707,7 +773,7 @@ let template = `
 
 			<div id="knobs">
 				<div class="knob" id="volumeGain">
-					<webaudio-knob  id="knob1"  class="effectClass" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn="1" tooltip="Volume %.2f"></webaudio-knob>
+					<webaudio-knob  id="knob1"  class="effectClass" height="30" width="30" sprites="100" min="0" max="1" step="0.01" value="0.5" midilearn=true tooltip="Volume %.2f"></webaudio-knob>
 					<label for="knob1" class="effectClass">Volume</label>
 				</div>
 				<div class="knob" id="pan">
@@ -947,6 +1013,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 	}
 
 	setKnobs() {
+		const effectKnobs = this.shadowRoot.querySelectorAll('.knob');
+		effectKnobs.forEach((effectKnob) => { effectKnob.classList.add('knobDisabled') });
 		this.shadowRoot.querySelector('#knob1').addEventListener('input', (e) => {
 			//this.plugin.audioNode.setParamsValues({ volumeGain: e.target.value });
 
@@ -988,7 +1056,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		})
 
 		//button reverse
-		this.shadowRoot.querySelector('#reverse').addEventListener('click', (e) => {
+		const btnReverse = this.shadowRoot.querySelector('#reverse');
+		btnReverse.disabled = true;
+		btnReverse.addEventListener('click', (e) => {
 			if (this.player == undefined) return;
 
 			const reverseSoundBuffer = this.player.reverseSound(this.player.decodedSound);
@@ -996,6 +1066,8 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			this.player.decodedSound = reverseSoundBuffer;
 			this.player.drawWaveform();
+
+			this.player.reversed ? btnReverse.classList.add('choose') : btnReverse.classList.remove('choose');
 		});
 
 
@@ -1006,6 +1078,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
 		//disable all knobs
 		envKnobs.forEach((envKnob) => { envKnob.classList.add('knobDisabled') });
+		envBtn.disabled = true;
 		envBtn.addEventListener('click', (e) => {
 			if (this.player == undefined) return;
 			if (!this.player.enableAdsr) {
@@ -1214,10 +1287,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 						this.deleteSample(index);
 					}
 					b.appendChild(deleteSample);
-
 					label.style.display = "inline-block";
 					input.style.display = "none";
 					this.setKeyboardPress();
+					this.setPad(index);
 				}
 
 				input.addEventListener('focus', (e) => {
@@ -1470,7 +1543,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 			b.addEventListener('drop', (e) => {
 				e.preventDefault();
 				e.stopPropagation();
-				const dropIndex = e.target.id;
+				let btnTargetId;
+				if(e.target.classList.contains('button_content') || e.target.classList.contains('button_text'))  {
+					btnTargetId = b.id;
+				} else {
+					btnTargetId = e.target.id;
+				}
+				const dropIndex = btnTargetId;
 				const dragIndex = e.dataTransfer.getData('id');
 				const dropUrl = e.dataTransfer.getData('url');
 
@@ -1506,7 +1585,13 @@ export default class SamplerHTMLElement extends HTMLElement {
 		b1.addEventListener('drop', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			const dropIndex = e.target.id;
+			let btnTargetId;
+			if(e.target.classList.contains('button_content')|| e.target.classList.contains('button_text')){
+					btnTargetId = b1.id;
+				} else {
+					btnTargetId = e.target.id;
+				}
+			const dropIndex = btnTargetId;
 			const dragIndex = e.dataTransfer.getData('id');
 			const dropUrl = e.dataTransfer.getData('url');
 
@@ -1646,12 +1731,10 @@ export default class SamplerHTMLElement extends HTMLElement {
 		SamplerHTMLElement.name[index2] = button.innerHTML;
 		SamplerHTMLElement.defaultName[index2] = button.innerHTML;
 
-
-
 		// On remet les samplesPlayer
-		this.samplePlayers[index2] = this.explorerSamplePlayers[index1];
-		//this.samplePlayers[index2] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", decodedSound, this.plugin.audioNode);
-
+		//this.samplePlayers[index2] = this.explorerSamplePlayers[index1];
+		//recreate a new SamplePlayer independant of the explorer
+		this.samplePlayers[index2] = new SamplePlayer(this.plugin.audioContext, this.canvas, this.canvasOverlay, "orange", this.decodedSounds[index1], this.plugin.audioNode);
 		// On configure le bouton
 		this.setPad(index2);
 
@@ -1781,6 +1864,21 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 
 		b.classList.add('set');
+		b.classList.add('padbutton');
+		
+
+		// Ajoute un div pour le contenu du bouton
+		const buttonContent = document.createElement('div');
+		buttonContent.classList.add('button_content');
+		buttonContent.id = 'button_content' + index;
+		b.appendChild(buttonContent);
+
+		//ajoute le texte
+		const buttonText = document.createElement('p');
+		buttonText.classList.add('button_text');
+		buttonText.id = 'button_text' + index;
+		buttonText.textContent = b.textContent;
+		buttonContent.appendChild(buttonText);
 
 		// Ajoute un petit bouton pour supprimer le sample en haut à droite
 		const deleteSample = document.createElement('button');
@@ -1792,7 +1890,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		}
 		b.appendChild(deleteSample);
 
-
+		//b.onclick ou b.onmousedown ?
 		b.onclick = (e) => {
 			// passe le bouton en active, supprie le active des autres padbutton
 			// display name of the sound inside the event.target element
@@ -1820,12 +1918,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 			//this.player.playReverse();
 
-			this.b = e.target;
+			//this.b = e.target;
 
-			this.b.classList.add('active');
+			b.classList.add('active');
 			setTimeout(() => {
-				this.b.classList.remove('active');
-			}, 100);
+				b.classList.remove('active');
+			}, 20);
 
 			// On enleve la class .selected de tous les boutons
 			const buttons = this.shadowRoot.querySelectorAll('.padbutton');
@@ -1845,9 +1943,15 @@ export default class SamplerHTMLElement extends HTMLElement {
 			//on peut maitenant renommer le sample
 			this.setLabel(index, b);
 		};
+		// b.onmouseup = (e) => {
+		// 	b.classList.remove('active');
+		// };
 	}
 
 	setKnobsEffects() {
+		// enable effects knobs
+		const effectKnobs = this.shadowRoot.querySelectorAll('.knob');
+		effectKnobs.forEach((effectKnob) => { effectKnob.classList.remove('knobDisabled') });
 		// set effects knobs to current values
 		this.shadowRoot.querySelector('#knob1').value = this.player.effects.volumeGain;
 		this.shadowRoot.querySelector('#knob2').value = this.player.effects.pan;
@@ -1857,6 +1961,12 @@ export default class SamplerHTMLElement extends HTMLElement {
 		//pitch
 		this.shadowRoot.querySelector('#knobPitch').value = this.player.semitones;
 
+		const btnReverse = this.shadowRoot.querySelector('#reverse');
+		btnReverse.disabled = false;
+
+		btnReverse.value = this.player.reverseValue;
+		this.player.reversed ? btnReverse.classList.add('choose') : btnReverse.classList.remove('choose');
+
 		//adsr
 		this.shadowRoot.querySelector('#knobAttack').value = this.player.effects.attackValue;
 		this.shadowRoot.querySelector('#knobDecay').value = this.player.effects.decayValue;
@@ -1865,6 +1975,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 		const envBtn = this.shadowRoot.querySelector('#envBtn');
 		const envKnobs = this.shadowRoot.querySelectorAll('.knobEnv');
+		envBtn.disabled = false;
 		envKnobs.forEach((envKnob) => { envKnob.classList.remove('knobDisabled') });
 
 		if (!this.player.enableAdsr) {
@@ -1981,6 +2092,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		// On charge les nouveaux sons
 		this.loadSounds(presetValue);
 		this.setLabel();
+		//this.setKnobs();
 
 	}
 
@@ -2438,7 +2550,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		index = parseInt(index);
 		switch (index) {
 			case 0:
-				this.shadowRoot.querySelector('#pad0').innerHTML = "W";
+				this.shadowRoot.querySelector('#button_text0').textContent = "W";
 				break;
 			case 1:
 				this.shadowRoot.querySelector('#pad1').innerHTML = "X";
@@ -2715,16 +2827,18 @@ export default class SamplerHTMLElement extends HTMLElement {
 	processMIDIEvents(midiEvents) {
 		console.log("processMIDIEvents called at " + Date.now());
 		console.log("midiEvents:", midiEvents);
+		
 		//si on écoute pas les bindings (faire un if)
 		midiEvents.forEach(message => {
+			console.log("velocity " + message.event[2]);
 
-			if (message.event[0] == MIDI.NOTE_ON) {
+			if (message.event[0] === MIDI.NOTE_ON && message.event[2] !== 0) {
 				let midiNote = message.event[1]
 				let velocity = message.event[2];
 				this.noteOn(midiNote, message.time);
 				// if (velocity > 0) this.noteOn(midiNote, message.time)
 				// else this.noteOff(midiNote, message.time)
-			} else if (message.event[0] == MIDI.NOTE_OFF) {
+			} else if (message.event[0] === MIDI.NOTE_OFF || (message.event[0] === MIDI.NOTE_ON && message.event[2] === 0)) {
 				let midiNote = message.event[1]
 				this.noteOff(midiNote, message.time)
 			} else if (message.event[0] >= MIDI.CC && message.event[0] < MIDI.CC + 16) {

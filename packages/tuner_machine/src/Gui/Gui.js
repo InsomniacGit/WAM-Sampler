@@ -307,7 +307,7 @@ export default class TunerHTMLElement extends HTMLElement {
         this._root
             .querySelector('#switch1')
             .addEventListener('change', (evt) => {
-                console.log(this);
+                console.log(this.plugin);
                 let tunerEnabled = this.plugin.audioNode.getParamValue('enabled');
                 if (!tunerEnabled) {
                     // For starting the audio context in case it was stopped
