@@ -15,6 +15,12 @@ const getBaseURL = () => {
 function changePathToAbsolute(pathArray) {
 	// turn these realtive paths into absolute paths
 	pathArray = pathArray.map((url) => {
+		if(url.startsWith('http')) {
+			console.log("URL is already absolute, doing nothing url = " + url);
+			return url;
+		}	
+
+		console.log("Changin url = " + url + " to absolute path");
 		if(url ==='') return url;
 		
 		url = getBaseURL() + url;
