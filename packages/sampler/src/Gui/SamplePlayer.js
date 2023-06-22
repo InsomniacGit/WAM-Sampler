@@ -174,8 +174,8 @@ export default class SamplePlayer {
             }
         }
 
-        this.waveformDrawer = new WaveformDrawer();
-        this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
+        // this.waveformDrawer = new WaveformDrawer();
+        // this.waveformDrawer.init(this.decodedSound, this.canvasWaveform, this.color);
 
         return repitchedBuffer;
     }

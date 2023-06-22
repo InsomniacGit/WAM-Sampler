@@ -95,7 +95,7 @@ let style = `
 	left: 0;
 	width: 1200px;
 	height: 700px;
-	//background-image: url("./Gui/imgOrange.jpg");
+	background-image: url("./Gui/imgOrange.jpg");
 	background-color: #4b7338;
 opacity: 0.8;
 //background-color: #494f0a;
@@ -632,6 +632,7 @@ option {
 	width: 50px;
 	height: 20px;
 	font-size: 10px;
+	display: flex;
 	justify-content: center;
 	align-items: center;
 	border-radius: 10px;
@@ -2550,7 +2551,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 		index = parseInt(index);
 		switch (index) {
 			case 0:
-				this.shadowRoot.querySelector('#button_text0').textContent = "W";
+				this.shadowRoot.querySelector('#pad0').innerHTML = "W";
 				break;
 			case 1:
 				this.shadowRoot.querySelector('#pad1').innerHTML = "X";
@@ -2835,7 +2836,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 			if (message.event[0] === MIDI.NOTE_ON && message.event[2] !== 0) {
 				let midiNote = message.event[1]
 				let velocity = message.event[2];
-				this.noteOn(midiNote, message.time);
+				this.noteOn(midiNote, message.time, velocity);
 				// if (velocity > 0) this.noteOn(midiNote, message.time)
 				// else this.noteOff(midiNote, message.time)
 			} else if (message.event[0] === MIDI.NOTE_OFF || (message.event[0] === MIDI.NOTE_ON && message.event[2] === 0)) {
@@ -2907,7 +2908,7 @@ export default class SamplerHTMLElement extends HTMLElement {
 
 
 
-	noteOn(note, tickStartTime) {
+	noteOn(note, tickStartTime, velocity) {
 		console.log("noteOn", note, tickStartTime)
 		const padIndex = note - 60; // 60 is C3
 		if (!this.shadowRoot.querySelector('#pad' + padIndex)) return;
@@ -2926,6 +2927,9 @@ export default class SamplerHTMLElement extends HTMLElement {
 		this.player.stop();
 		this.player.play();
 
+		//set velocity to volumeGain
+		this.player.effects.volumeGain = parseFloat(velocity / 127);
+		this.shadowRoot.querySelector('#knob1').value = parseFloat(velocity / 127);
 
 		//pad GUI
 		padbutton.classList.add('active');
